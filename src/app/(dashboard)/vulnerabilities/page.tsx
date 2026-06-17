@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMemo, useState } from 'react';
@@ -16,7 +15,11 @@ import {
   ShieldCheck,
   AlertTriangle,
   Flame,
-  ChevronDown
+  ChevronDown,
+  LayoutGrid,
+  FileText,
+  Binary,
+  Code2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -28,11 +31,14 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import { useFirestore, useAuth, useCollection } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { logAuditEvent } from '@/lib/audit-logger';
 
 export default function VulnerabilitiesPage() {
   const firestore = useFirestore();
   const { currentUser } = useAuth();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [severityFilter, setSeverityFilter] = useState<string[]>([]);
   const [selectedVuln, setSelectedVuln] = useState<any>(null);
@@ -64,21 +70,36 @@ export default function VulnerabilitiesPage() {
     );
   };
 
+  const updateVulnStatus = async (id: string, newStatus: string) => {
+    if (!firestore || !currentUser) return;
+    try {
+      await updateDoc(doc(firestore, 'vulnerabilities', id), {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+      toast({ title: "Status Updated", description: `Finding marked as ${newStatus}` });
+      logAuditEvent(currentUser.uid, currentUser.email!, 'VULN_STATUS_CHANGE', `Updated status of ${id} to ${newStatus}`, id);
+      setSelectedVuln(null);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Update Failed" });
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-headline font-bold text-white text-glow">Vulnerability Inventory</h2>
-          <p className="text-muted-foreground">Comprehensive database of all detected security findings.</p>
+          <p className="text-muted-foreground">Comprehensive database of all detected security findings and exposures.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="border-white/10 rounded-xl gap-2 hover:bg-white/5 text-white">
             <Download className="w-4 h-4" />
-            Export CSV
+            Export Audit CSV
           </Button>
           <Button className="cyber-gradient border-none shadow-lg rounded-xl gap-2">
             <ShieldAlert className="w-4 h-4" />
-            Bulk Remediation
+            Remediation Hub
           </Button>
         </div>
       </div>
@@ -88,14 +109,13 @@ export default function VulnerabilitiesPage() {
           <Card className="glass-card">
             <CardContent className="p-6 space-y-6">
               <div className="space-y-4">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Filter by Severity</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Severity Filter</label>
                 <div className="space-y-2">
                   {[
                     { id: 'Critical', color: 'text-destructive', icon: Flame },
                     { id: 'High', color: 'text-orange-500', icon: AlertTriangle },
                     { id: 'Medium', color: 'text-yellow-500', icon: AlertTriangle },
                     { id: 'Low', color: 'text-blue-500', icon: Info },
-                    { id: 'Info', color: 'text-muted-foreground', icon: Info },
                   ].map(sev => (
                     <button 
                       key={sev.id}
@@ -118,10 +138,14 @@ export default function VulnerabilitiesPage() {
               </div>
 
               <div className="pt-4 border-t border-white/5 space-y-4">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Quick Actions</label>
-                <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl text-xs hover:bg-white/5">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Analyst Tools</label>
+                <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl text-xs hover:bg-white/5 text-white">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                   Show Resolved Findings
+                </Button>
+                <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl text-xs hover:bg-white/5 text-white">
+                  <Binary className="w-4 h-4 text-primary" />
+                  CVE Deep Dive
                 </Button>
               </div>
             </CardContent>
@@ -135,7 +159,7 @@ export default function VulnerabilitiesPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary/50 text-white text-lg placeholder:text-muted-foreground/30" 
-              placeholder="Search by vulnerability title, asset name, or CVE..." 
+              placeholder="Search by title, asset name, or CVE..." 
             />
           </div>
 
@@ -143,7 +167,7 @@ export default function VulnerabilitiesPage() {
             {loading ? (
               <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                Synchronizing findings database...
+                <span className="text-white">Synchronizing findings intelligence...</span>
               </div>
             ) : filteredVulns && filteredVulns.length > 0 ? (
               filteredVulns.map((v) => (
@@ -163,7 +187,7 @@ export default function VulnerabilitiesPage() {
                               {v.cve && <Badge variant="outline" className="text-[10px] font-mono text-primary/80 border-primary/20">{v.cve}</Badge>}
                             </h3>
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                              <span>Asset: {v.assetName || 'System'}</span>
+                              <span>Asset: {v.assetName || 'Core Infrastructure'}</span>
                               <span className="opacity-30">•</span>
                               <span>Detected: {v.createdAt?.toDate().toLocaleDateString() || 'Recently'}</span>
                               {v.cvss && (
@@ -187,7 +211,7 @@ export default function VulnerabilitiesPage() {
                         <div className="flex items-center justify-between pt-2">
                           <div className="flex gap-4">
                             <div className="text-[10px] text-muted-foreground">
-                              Source: <span className="text-white/60">{v.source || 'Scanner'}</span>
+                              Technique: <span className="text-white/60">{v.source || 'ZAP Engine'}</span>
                             </div>
                           </div>
                           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transform transition-all group-hover:translate-x-1" />
@@ -202,7 +226,7 @@ export default function VulnerabilitiesPage() {
                 <AlertOctagon className="w-12 h-12 text-muted-foreground opacity-20" />
                 <div className="space-y-1">
                   <p className="text-white font-bold">No findings detected</p>
-                  <p className="text-sm text-muted-foreground">Your attack surface appears clean. Run a scan to find issues.</p>
+                  <p className="text-sm text-muted-foreground">The security perimeter appears clean. Initiate a new scan to verify integrity.</p>
                 </div>
               </div>
             )}
@@ -220,11 +244,11 @@ export default function VulnerabilitiesPage() {
                     variant={selectedVuln.severity === 'Critical' || selectedVuln.severity === 'High' ? 'destructive' : 'secondary'}
                     className="mb-2"
                   >
-                    {selectedVuln.severity} Severity
+                    {selectedVuln.severity} Risk
                   </Badge>
                   {selectedVuln.cvss && (
                     <div className="text-right">
-                      <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">CVSS Score</div>
+                      <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">CVSS Impact</div>
                       <div className="text-2xl font-headline font-bold text-primary">{selectedVuln.cvss}</div>
                     </div>
                   )}
@@ -236,32 +260,38 @@ export default function VulnerabilitiesPage() {
                     Asset: {selectedVuln.assetName}
                   </div>
                   {selectedVuln.cve && (
-                    <div className="font-mono bg-white/5 px-2 py-0.5 rounded">{selectedVuln.cve}</div>
+                    <div className="font-mono bg-white/5 px-2 py-0.5 rounded text-primary">{selectedVuln.cve}</div>
                   )}
                 </div>
               </DialogHeader>
 
               <div className="space-y-6 pt-4">
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider">Description</h4>
+                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Technical Description
+                  </h4>
                   <p className="text-sm leading-relaxed text-muted-foreground">{selectedVuln.description}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-destructive uppercase tracking-wider">Impact</h4>
+                  <h4 className="text-sm font-bold text-destructive uppercase tracking-wider flex items-center gap-2">
+                    <Flame className="w-4 h-4" /> Business Impact
+                  </h4>
                   <p className="text-sm leading-relaxed text-muted-foreground">{selectedVuln.impact}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-emerald-500 uppercase tracking-wider">Recommendation</h4>
+                  <h4 className="text-sm font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4" /> Remediation Recommendation
+                  </h4>
                   <p className="text-sm leading-relaxed text-muted-foreground">{selectedVuln.recommendation}</p>
                 </div>
 
                 {selectedVuln.evidence && (
                   <div className="space-y-2">
                     <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                      Evidence
-                      <Badge variant="outline" className="text-[9px] py-0">Scan Output</Badge>
+                      <Binary className="w-4 h-4" /> Telemetry Evidence
+                      <Badge variant="outline" className="text-[9px] py-0 ml-auto">Live Output</Badge>
                     </h4>
                     <pre className="bg-black/40 p-4 rounded-xl text-[10px] font-code overflow-x-auto border border-white/5 text-emerald-400/80">
                       {selectedVuln.evidence}
@@ -270,14 +300,21 @@ export default function VulnerabilitiesPage() {
                 )}
 
                 <div className="pt-6 border-t border-white/10 flex gap-4">
-                  <Button className="flex-1 cyber-gradient h-11">
-                    Mark as Resolved
+                  <Button 
+                    className="flex-1 cyber-gradient h-11 text-white font-bold"
+                    onClick={() => updateVulnStatus(selectedVuln.id, 'Resolved')}
+                  >
+                    Eradicate Finding
                   </Button>
-                  <Button variant="outline" className="flex-1 border-white/10 h-11 hover:bg-white/5" onClick={() => {
-                    // This could navigate to the AI assistant with context
-                    window.location.href = `/ai-assistant?vulnId=${selectedVuln.id}`;
-                  }}>
-                    AI Remediation Help
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-white/10 h-11 hover:bg-white/5 text-white" 
+                    onClick={() => {
+                      window.location.href = `/ai-assistant?vulnId=${selectedVuln.id}`;
+                    }}
+                  >
+                    <Code2 className="w-4 h-4 mr-2" />
+                    AI Code Fix
                   </Button>
                 </div>
               </div>

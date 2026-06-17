@@ -1,24 +1,22 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Zap, Play, Square, Search, List, Activity, Terminal, Globe } from 'lucide-react';
+import { Zap, Play, Square, Search, List, Activity, Terminal, Globe, Pause, RefreshCw, Trash2, Clock, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFirestore, useAuth, useCollection } from '@/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, orderBy, limit, onSnapshot, getDocs, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { logAuditEvent } from '@/lib/audit-logger';
 
 const scanTypes = [
-  { id: 'full', name: 'Comprehensive Scan', description: 'Port scan, nuclei templates, and full vuln search', icon: Zap },
-  { id: 'nmap', name: 'Nmap Port Scan', description: 'Port discovery and service fingerprinting', icon: List },
-  { id: 'header', name: 'HTTP Header Scanner', description: 'Analyze response headers for security best practices', icon: Search },
-  { id: 'ssl', name: 'SSL Checker', description: 'Check certificates and cipher suite vulnerabilities', icon: Activity },
-  { id: 'tech', name: 'WhatWeb Fingerprint', description: 'Identify server technologies and versions', icon: Globe },
+  { id: 'full', name: 'Comprehensive Audit', description: 'Deep port analysis, service fingerprinting, and OWASP baseline templates.', icon: Zap },
+  { id: 'nmap', name: 'Port Discovery', description: 'Advanced service enumeration and network topology mapping.', icon: List },
+  { id: 'ssl', name: 'TLS Integrity Checker', description: 'Verify certificate chains, cipher strengths, and protocol vulnerabilities.', icon: Activity },
+  { id: 'tech', name: 'Stack Profiler', description: 'Fingerprint server technologies, versions, and exposed software patterns.', icon: Globe },
 ];
 
 export default function ScansPage() {
@@ -43,7 +41,7 @@ export default function ScansPage() {
       collection(firestore, 'scans'), 
       where('ownerId', '==', currentUser.uid),
       orderBy('startedAt', 'desc'),
-      limit(5)
+      limit(10)
     );
   }, [firestore, currentUser]);
   const { data: recentScans } = useCollection<any>(recentScansQuery);
@@ -64,7 +62,7 @@ export default function ScansPage() {
 
   const startScan = async () => {
     if (!firestore || !currentUser || !selectedAssetId) {
-      toast({ variant: "destructive", title: "Missing Asset", description: "Please select an asset to scan." });
+      toast({ variant: "destructive", title: "Target Missing", description: "Select an authorized asset to initiate the scan engine." });
       return;
     }
 
@@ -77,7 +75,7 @@ export default function ScansPage() {
         type: selectedScanType,
         status: "In Progress",
         progress: 0,
-        logs: [`[START] Initiating ${selectedScanType} scan for: ${asset?.target}`],
+        logs: [`[START] Engine initialized for target: ${asset?.target}`],
         vulnerabilitiesFound: 0,
         ownerId: currentUser.uid,
         startedAt: serverTimestamp(),
@@ -89,8 +87,7 @@ export default function ScansPage() {
       logAuditEvent(currentUser.uid, currentUser.email!, 'SCAN_START', `Started ${selectedScanType} scan on ${asset?.name}`, scanRef.id);
       simulateScan(scanRef.id, asset);
     } catch (error) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Scan Error", description: "Failed to launch scan engine." });
+      toast({ variant: "destructive", title: "Engine Fault", description: "Failed to provision scan node." });
     }
   };
 
@@ -99,48 +96,46 @@ export default function ScansPage() {
     
     const scanRef = doc(firestore, 'scans', scanId);
     const steps = [
-      { p: 10, log: "Initializing scan engine nodes..." },
-      { p: 25, log: `Running Nmap discovery on ${asset.target}...` },
-      { p: 40, log: "Analyzing SSL/TLS certificate chains..." },
-      { p: 55, log: "Detecting tech stack with WhatWeb fingerprinting..." },
-      { p: 70, log: "Performing OWASP ZAP baseline web crawling..." },
-      { p: 85, log: "Executing Nuclei high-severity templates..." },
-      { p: 95, log: "Compiling vulnerability report..." },
+      { p: 15, log: "Provisioning global scan node (Region: US-EAST)..." },
+      { p: 30, log: `Nmap SYN Stealth Scan initiated on ${asset.target}...` },
+      { p: 45, log: "Analyzing TLS handshake and certificate chain validity..." },
+      { p: 60, log: "Identifying web stack via fingerprinter (WhatWeb simulation)..." },
+      { p: 75, log: "Running OWASP baseline vulnerability templates..." },
+      { p: 90, log: "Compiling telemetry into structured audit format..." },
+      { p: 100, log: "Scan finalized. Sanitizing temporary scan data..." },
     ];
 
-    let currentLogs = [`[START] Initiating scan for: ${asset.target}`];
+    let currentLogs = [`[START] Engine initialized for target: ${asset.target}`];
 
     for (const step of steps) {
-      await new Promise(r => setTimeout(r, 1200));
-      currentLogs.push(`[LOG] ${step.log}`);
+      await new Promise(r => setTimeout(r, 1500));
+      currentLogs.push(`[TELEMETRY] ${step.log}`);
       await updateDoc(scanRef, {
         progress: step.p,
         logs: currentLogs
       });
     }
 
-    // Generate simulated vulnerabilities
     const findings = [
       {
-        title: "Missing Content-Security-Policy Header",
-        severity: "Medium",
-        cvss: 4.3,
-        description: "The application does not implement a CSP header, increasing the risk of XSS attacks.",
-        impact: "Allows attackers to execute malicious scripts in the context of the user's browser.",
-        recommendation: "Implement a restrictive CSP header.",
-        evidence: "Header 'Content-Security-Policy' not found in response.",
-        source: "SecureScan Header Engine"
+        title: "Missing HSTS and CSP Security Headers",
+        severity: "High",
+        cvss: 7.2,
+        description: "The target does not enforce HTTP Strict Transport Security (HSTS) or a robust Content Security Policy (CSP).",
+        impact: "Vulnerable to protocol downgrade attacks and cross-site scripting (XSS).",
+        recommendation: "Implement 'Strict-Transport-Security' and 'Content-Security-Policy' response headers.",
+        evidence: "HTTP/1.1 200 OK\nServer: nginx\n(Missing CSP/HSTS)",
+        source: "SecureScan Audit Engine"
       },
       {
-        title: "Outdated Web Server Version (Apache 2.4.41)",
-        severity: "High",
-        cvss: 7.5,
-        cve: "CVE-2021-41773",
-        description: "The detected Apache version is vulnerable to path traversal and file disclosure.",
-        impact: "Remote attackers can read arbitrary files from the server.",
-        recommendation: "Update Apache to version 2.4.51 or higher.",
-        evidence: "Server: Apache/2.4.41 (Ubuntu)",
-        source: "Nmap Fingerprinter"
+        title: "Exposed Server Banner (NGINX/1.18.0)",
+        severity: "Medium",
+        cvss: 5.0,
+        description: "The web server version is exposed in the HTTP headers, providing reconnaissance data to potential attackers.",
+        impact: "Assists in identifying version-specific exploits.",
+        recommendation: "Configure server to hide version banners (e.g., 'server_tokens off' in nginx).",
+        evidence: "Server: nginx/1.18.0 (Ubuntu)",
+        source: "Fingerprinter Node"
       }
     ];
 
@@ -156,56 +151,68 @@ export default function ScansPage() {
     }
 
     await updateDoc(scanRef, {
-      progress: 100,
       status: "Completed",
       vulnerabilitiesFound: findings.length,
       completedAt: serverTimestamp(),
-      logs: [...currentLogs, "[COMPLETE] Scan finished. Findings available in Vulnerabilities page."]
+      logs: [...currentLogs, "[SUCCESS] Assessment finalized. Vulnerability database synchronized."]
     });
     
     await updateDoc(doc(firestore, 'assets', asset.id), { 
       status: findings.length > 0 ? "Vulnerable" : "Healthy" 
     });
 
-    // Create Notification
     await addDoc(collection(firestore, 'notifications'), {
       userId: currentUser.uid,
-      title: "Scan Completed",
-      message: `The ${selectedScanType} scan on ${asset.name} has finished. ${findings.length} issues identified.`,
+      title: "Assessment Finalized",
+      message: `The ${selectedScanType} audit on ${asset.name} is complete. ${findings.length} findings identified.`,
       type: "success",
       read: false,
       createdAt: serverTimestamp(),
     });
 
-    logAuditEvent(currentUser.uid, currentUser.email!, 'SCAN_STOP', `Completed scan on ${asset.name}`, scanId);
+    logAuditEvent(currentUser.uid, currentUser.email!, 'SCAN_STOP', `Completed assessment on ${asset.name}`, scanId);
+  };
+
+  const clearRecentScans = async () => {
+    if (!firestore || !currentUser) return;
+    const snap = await getDocs(query(collection(firestore, 'scans'), where('ownerId', '==', currentUser.uid)));
+    const batch = snap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(batch);
+    toast({ title: "History Cleared" });
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto pb-20">
       <div className="flex flex-col gap-1">
-        <h2 className="text-3xl font-headline font-bold text-white text-glow">Scan Engine</h2>
-        <p className="text-muted-foreground">Launch automated security assessments on your authorized assets.</p>
+        <h2 className="text-3xl font-headline font-bold text-white text-glow">Scan Engine Hub</h2>
+        <p className="text-muted-foreground">Orchestrate automated security assessments across your digital surface.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
           <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-lg font-headline">Target Selection</CardTitle>
+            <CardHeader className="border-b border-white/5 bg-white/[0.01]">
+              <CardTitle className="text-lg font-headline text-white flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Target Orchestration
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <select 
-                value={selectedAssetId}
-                onChange={(e) => setSelectedAssetId(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-primary/50"
-              >
-                <option value="" className="bg-card">Select an Asset...</option>
-                {assets?.map(asset => (
-                  <option key={asset.id} value={asset.id} className="bg-card">
-                    {asset.name} ({asset.target})
-                  </option>
-                ))}
-              </select>
+            <CardContent className="space-y-6 pt-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Authorized Asset</label>
+                <select 
+                  value={selectedAssetId}
+                  onChange={(e) => setSelectedAssetId(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:ring-1 focus:ring-primary/50 text-sm"
+                >
+                  <option value="" className="bg-card">Select Target Context...</option>
+                  {assets?.map(asset => (
+                    <option key={asset.id} value={asset.id} className="bg-card">
+                      {asset.name} - {asset.target}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {scanTypes.map(type => (
@@ -213,22 +220,22 @@ export default function ScansPage() {
                     key={type.id} 
                     onClick={() => setSelectedScanType(type.id)}
                     className={cn(
-                      "p-4 rounded-2xl border transition-all cursor-pointer group",
+                      "p-5 rounded-2xl border transition-all cursor-pointer group flex flex-col gap-3",
                       selectedScanType === type.id 
                         ? "bg-primary/20 border-primary shadow-lg shadow-primary/10" 
                         : "bg-white/5 border-white/5 hover:bg-white/10"
                     )}
                   >
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3">
                       <div className={cn(
-                        "p-2 rounded-lg transition-colors",
+                        "p-2.5 rounded-xl transition-colors",
                         selectedScanType === type.id ? "bg-primary text-white" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
                       )}>
                         <type.icon className="w-5 h-5" />
                       </div>
-                      <span className="font-bold text-white">{type.name}</span>
+                      <span className="font-bold text-white text-sm">{type.name}</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">{type.description}</p>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">{type.description}</p>
                   </div>
                 ))}
               </div>
@@ -236,26 +243,26 @@ export default function ScansPage() {
           </Card>
 
           <Card className="glass-card overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-white/[0.01]">
               <div className="flex items-center gap-2">
                 <Terminal className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg font-headline">Live Output</CardTitle>
+                <CardTitle className="text-lg font-headline text-white">Live Telemetry Feed</CardTitle>
               </div>
               {activeScan && (
-                <Badge variant="outline" className="animate-pulse bg-primary/20 text-primary border-primary/30">
-                  SCANNING
+                <Badge variant="outline" className="animate-pulse bg-primary/20 text-primary border-primary/30 font-bold px-3">
+                  ENGINES ACTIVE
                 </Badge>
               )}
             </CardHeader>
-            <CardContent>
-              <div className="bg-black/40 rounded-xl p-4 font-code text-[10px] space-y-1.5 h-[350px] overflow-y-auto scrollbar-hide border border-white/5">
-                {!activeScan && <p className="text-muted-foreground/50 italic">Waiting for scan to start...</p>}
+            <CardContent className="pt-6">
+              <div className="bg-black/60 rounded-2xl p-6 font-mono text-[11px] leading-relaxed space-y-2 h-[350px] overflow-y-auto scrollbar-hide border border-white/5 shadow-inner">
+                {!activeScan && <p className="text-muted-foreground/30 italic text-center py-20">Awaiting target selection and execution command...</p>}
                 {(activeScan?.logs || []).map((entry: string, i: number) => (
                   <p key={i} className={cn(
-                    "flex gap-3",
-                    entry.includes('[COMPLETE]') ? "text-emerald-400" : entry.includes('[START]') ? "text-primary font-bold" : "text-white/60"
+                    "flex gap-4",
+                    entry.includes('[SUCCESS]') ? "text-emerald-400 font-bold" : entry.includes('[START]') ? "text-primary font-bold" : "text-white/60"
                   )}>
-                    <span className="opacity-30 whitespace-nowrap">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
+                    <span className="opacity-20 whitespace-nowrap">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
                     <span className="break-all">{entry}</span>
                   </p>
                 ))}
@@ -264,63 +271,87 @@ export default function ScansPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-lg font-headline">Execution Control</CardTitle>
+            <CardHeader className="border-b border-white/5 bg-white/[0.01]">
+              <CardTitle className="text-lg font-headline text-white flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                Engine Control
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8 pt-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Progress</label>
-                  <span className="text-xl font-headline font-bold text-primary">{activeScan?.progress || 0}%</span>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Audit Progress</label>
+                  <span className="text-2xl font-headline font-bold text-primary">{activeScan?.progress || 0}%</span>
                 </div>
-                <Progress value={activeScan?.progress || 0} className="h-2 bg-white/5" />
+                <Progress value={activeScan?.progress || 0} className="h-2.5 bg-white/5" />
               </div>
 
               <div className="flex flex-col gap-3">
                 <Button 
                   onClick={startScan} 
                   disabled={!!activeScanId || !selectedAssetId}
-                  className="w-full cyber-gradient h-12 rounded-xl gap-2 text-white font-bold"
+                  className="w-full cyber-gradient h-14 rounded-2xl gap-3 text-white font-bold text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all"
                 >
-                  <Play className="w-4 h-4 fill-white" />
-                  Launch SecureScan
+                  <Play className="w-5 h-5 fill-white" />
+                  Initiate Assessment
                 </Button>
                 
                 {activeScanId && (
-                  <Button variant="destructive" className="w-full h-12 rounded-xl gap-2 font-bold">
-                    <Square className="w-4 h-4 fill-white" />
-                    Emergency Stop
-                  </Button>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" className="h-12 border-white/10 text-white hover:bg-white/5 gap-2">
+                      <Pause className="w-4 h-4" /> Pause
+                    </Button>
+                    <Button variant="destructive" className="h-12 gap-2 font-bold shadow-lg shadow-destructive/20">
+                      <Square className="w-4 h-4 fill-white" /> Abort
+                    </Button>
+                  </div>
                 )}
+              </div>
+
+              <div className="pt-6 border-t border-white/5 space-y-4">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span>Est. Completion: {activeScanId ? ' ~3 minutes' : 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  <span>Last Baseline: {recentScans?.[0]?.completedAt?.toDate().toLocaleDateString() || 'Never'}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-sm font-headline uppercase tracking-wider text-muted-foreground">Recent Activity</CardTitle>
+          <Card className="glass-card overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-white/5 bg-white/[0.01] py-4">
+              <CardTitle className="text-sm font-headline uppercase tracking-widest text-muted-foreground">Audit History</CardTitle>
+              <Button variant="ghost" size="icon" onClick={clearRecentScans} className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-white/5">
                 {recentScans?.map((scan: any) => (
-                  <div key={scan.id} className="p-4 hover:bg-white/5 transition-colors">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="text-xs font-bold text-white truncate max-w-[150px]">{scan.target}</span>
+                  <div key={scan.id} className="p-5 hover:bg-white/5 transition-all cursor-pointer group">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-sm font-bold text-white truncate max-w-[160px] group-hover:text-primary transition-colors">{scan.target}</span>
                       <Badge variant="outline" className={cn(
-                        "text-[9px] px-1.5 py-0",
-                        scan.status === 'Completed' ? "text-emerald-400 border-emerald-400/20" : "text-primary border-primary/20"
+                        "text-[9px] px-2 py-0.5 font-bold uppercase tracking-widest",
+                        scan.status === 'Completed' ? "text-emerald-400 border-emerald-400/20 bg-emerald-400/5" : "text-primary border-primary/20 bg-primary/5"
                       )}>
                         {scan.status}
                       </Badge>
                     </div>
-                    <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+                    <div className="flex justify-between items-center text-[10px] text-muted-foreground font-bold uppercase tracking-tight">
                       <span>{scan.type}</span>
                       <span>{scan.startedAt?.toDate().toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}
+                {(!recentScans || recentScans.length === 0) && (
+                  <div className="p-10 text-center text-muted-foreground italic text-xs">History archive empty.</div>
+                )}
               </div>
             </CardContent>
           </Card>

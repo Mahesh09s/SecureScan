@@ -1,47 +1,71 @@
-
 "use client";
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Shield, Zap, Bot, FileText, ChevronRight, Lock, Activity, Globe, ArrowRight } from 'lucide-react';
+import { 
+  Shield, 
+  Zap, 
+  Bot, 
+  FileText, 
+  ChevronRight, 
+  Lock, 
+  Activity, 
+  Globe, 
+  ArrowRight, 
+  CheckCircle2, 
+  Star, 
+  Users, 
+  Database, 
+  ShieldAlert, 
+  Cpu,
+  ShieldCheck
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/firebase';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
 
 export default function LandingPage() {
   const { currentUser } = useAuth();
-  const heroImg = PlaceHolderImages.find(img => img.id === 'hero-bg');
   const dashImg = PlaceHolderImages.find(img => img.id === 'feature-dashboard');
 
+  const fadeInUp = {
+    initial: { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true },
+    transition: { duration: 0.8, ease: "easeOut" }
+  };
+
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass h-20 border-b border-white/5">
-        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl cyber-gradient flex items-center justify-center shadow-lg shadow-primary/20">
-              <Shield className="text-white w-6 h-6" />
+    <div className="min-h-screen bg-[#030712] overflow-x-hidden selection:bg-primary selection:text-white">
+      {/* Premium Navigation */}
+      <nav className="fixed top-0 w-full z-50 backdrop-blur-2xl h-20 border-b border-white/5 bg-black/40">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-8">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl cyber-gradient flex items-center justify-center shadow-xl shadow-primary/20">
+              <Shield className="text-white w-7 h-7" />
             </div>
-            <span className="text-2xl font-headline font-bold text-white tracking-tight">SecureScan</span>
+            <span className="text-2xl font-headline font-bold text-white tracking-tighter">SecureScan<span className="text-primary italic">.</span></span>
           </div>
-          <div className="hidden md:flex items-center gap-8">
-            {['Solutions', 'Features', 'Compliance', 'Pricing'].map(item => (
-              <Link key={item} href="#" className="text-sm font-medium text-muted-foreground hover:text-white transition-colors">
+          <div className="hidden lg:flex items-center gap-10">
+            {['Architecture', 'Intelligence', 'Compliance', 'Security'].map(item => (
+              <Link key={item} href="#" className="text-sm font-bold text-muted-foreground hover:text-white transition-all tracking-wide uppercase text-[10px]">
                 {item}
               </Link>
             ))}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {currentUser ? (
-              <Button asChild className="cyber-gradient rounded-full px-6">
-                <Link href="/dashboard">Enter Console <ChevronRight className="ml-2 w-4 h-4" /></Link>
+              <Button asChild className="cyber-gradient rounded-xl px-8 font-bold h-11 text-white shadow-lg shadow-primary/20">
+                <Link href="/dashboard">Access Command Center <ChevronRight className="ml-2 w-4 h-4" /></Link>
               </Button>
             ) : (
               <>
-                <Link href="/login" className="text-sm font-medium text-white hover:opacity-80 transition-opacity">Sign In</Link>
-                <Button asChild className="cyber-gradient rounded-full px-6">
-                  <Link href="/register">Start Scanning</Link>
+                <Link href="/login" className="text-sm font-bold text-white hover:text-primary transition-colors tracking-wide uppercase text-[10px]">Sign In</Link>
+                <Button asChild className="cyber-gradient rounded-xl px-8 font-bold h-11 text-white shadow-lg shadow-primary/20">
+                  <Link href="/register">Initialize Node</Link>
                 </Button>
               </>
             )}
@@ -49,107 +73,111 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-40 pb-20 px-6">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+      {/* Strategic Hero Section */}
+      <section className="relative pt-48 pb-32 px-8 overflow-hidden">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
           <motion.div 
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -60 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="space-y-10"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
-              <Zap className="w-3 h-3 fill-primary" />
-              Vulnerability Intelligence
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-[0.2em] shadow-xl shadow-primary/5">
+              <Zap className="w-4 h-4 fill-primary" />
+              Enterprise Vulnerability Intelligence
             </div>
-            <h1 className="text-5xl lg:text-7xl font-headline font-bold text-white leading-[1.1]">
-              Automate Your <span className="text-primary italic">Security</span> Perimeter
+            <h1 className="text-6xl lg:text-8xl font-headline font-bold text-white leading-[0.95] tracking-tighter">
+              Orchestrate Your <span className="text-primary italic">Defense</span> Posture.
             </h1>
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-xl">
-              Unify asset discovery, automated scanning, and AI-powered remediation into a single, cohesive command center. Build for scale, secure for the future.
+            <p className="text-xl text-muted-foreground leading-relaxed max-w-xl font-medium">
+              Unified asset discovery, deep-telemetry auditing, and Gemini-powered remediation. Built for high-compliance engineering teams who prioritize continuous integrity.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="cyber-gradient rounded-full px-8 text-lg h-14" asChild>
-                <Link href="/register">Deploy Free Node <ArrowRight className="ml-2 w-5 h-5" /></Link>
+            <div className="flex flex-col sm:flex-row gap-5">
+              <Button size="lg" className="cyber-gradient rounded-2xl px-10 text-lg h-16 font-bold text-white shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all" asChild>
+                <Link href="/register">Start Free Assessment <ArrowRight className="ml-2 w-6 h-6" /></Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-8 text-lg h-14 border-white/10 hover:bg-white/5">
-                View Demo Report
+              <Button size="lg" variant="outline" className="rounded-2xl px-10 text-lg h-16 border-white/10 hover:bg-white/5 text-white font-bold backdrop-blur-xl">
+                Technical Briefing
               </Button>
             </div>
-            <div className="flex items-center gap-6 pt-4 grayscale opacity-50">
-              {['TRUSTED BY', 'SOC2', 'HIPAA', 'ISO27001'].map(logo => (
-                <span key={logo} className="text-[10px] font-bold tracking-[0.2em]">{logo}</span>
+            <div className="flex items-center gap-8 pt-8 opacity-40 grayscale filter hover:grayscale-0 hover:opacity-100 transition-all">
+              {['ISO 27001', 'SOC2 TYPE II', 'NIST 800-53', 'PCI DSS 4.0'].map(cert => (
+                <span key={cert} className="text-[10px] font-black tracking-[0.3em] text-white whitespace-nowrap">{cert}</span>
               ))}
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            initial={{ opacity: 0, scale: 0.9, rotateY: -10 }}
+            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+            transition={{ duration: 1.2, delay: 0.3 }}
             className="relative"
           >
-            <div className="relative z-10 rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/20">
+            <div className="relative z-10 glass-card rounded-[2.5rem] overflow-hidden p-3 bg-white/[0.02]">
               <Image 
                 src={dashImg?.imageUrl || ''} 
-                width={800} 
-                height={600} 
+                width={1000} 
+                height={750} 
                 alt="SecureScan Dashboard" 
-                data-ai-hint="security dashboard"
-                className="w-full h-auto"
+                data-ai-hint="cybersecurity dashboard"
+                className="w-full h-auto rounded-[2rem] shadow-2xl"
               />
             </div>
-            {/* Decorative elements */}
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse"></div>
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-violet-600/20 rounded-full blur-[100px] animate-pulse delay-1000"></div>
+            <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/20 rounded-full blur-[120px] animate-pulse"></div>
+            <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
           </motion.div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
+      {/* Strategic Stats Section */}
+      <section className="py-24 border-y border-white/5 bg-white/[0.01] backdrop-blur-3xl relative">
+        <div className="max-w-7xl mx-auto px-8 grid grid-cols-2 md:grid-cols-4 gap-12">
           {[
-            { label: 'ASSETS SECURED', val: '2.4M+' },
-            { label: 'DAILY SCANS', val: '850K' },
-            { label: 'VULNS DETECTED', val: '12M' },
-            { label: 'UPTIME', val: '99.99%' },
+            { label: 'ASSETS UNDER MANAGEMENT', val: '24M+' },
+            { label: 'DAILY TELEMETRY NODES', val: '850K' },
+            { label: 'AUDIT EVENTS LOGGED', val: '12B+' },
+            { label: 'ENGINE UPTIME SLA', val: '99.99%' },
           ].map((stat, i) => (
-            <div key={i} className="text-center space-y-2">
-              <p className="text-4xl font-headline font-bold text-white">{stat.val}</p>
-              <p className="text-xs font-bold text-muted-foreground tracking-widest">{stat.label}</p>
-            </div>
+            <motion.div 
+              key={i} 
+              {...fadeInUp}
+              className="text-center space-y-4"
+            >
+              <p className="text-5xl font-headline font-bold text-white tracking-tighter">{stat.val}</p>
+              <p className="text-[10px] font-black text-muted-foreground tracking-[0.4em] uppercase">{stat.label}</p>
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-32 px-6">
+      {/* Features Grid - Enterprise Focus */}
+      <section className="py-40 px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-20 space-y-4">
-            <h2 className="text-4xl font-headline font-bold text-white">Engineered for Security Teams</h2>
-            <p className="text-muted-foreground leading-relaxed">Everything you need to manage your attack surface, integrated from day one.</p>
+          <div className="text-center max-w-3xl mx-auto mb-24 space-y-6">
+            <h2 className="text-5xl font-headline font-bold text-white tracking-tight">Engineered for Global Security Operations</h2>
+            <p className="text-xl text-muted-foreground leading-relaxed font-medium">A unified platform for technical analysts, compliance officers, and executive stakeholders.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: 'Asset Discovery', icon: Globe, desc: 'Automatically map and categorize every digital property in your ecosystem.' },
-              { title: 'Continuous Scanning', icon: Activity, desc: 'Deploy automated engines to find SQLi, XSS, and misconfigurations in real-time.' },
-              { title: 'AI Remediation', icon: Bot, desc: 'Let Gemini write your fixes. Get code-level guidance for every vulnerability identified.' },
-              { title: 'Enterprise Reports', icon: FileText, desc: 'Generate compliance-ready PDF/CSV reports with a single click.' },
-              { title: 'RBAC Controls', icon: Lock, desc: 'Granular access control for analysts, admins, and executive viewers.' },
-              { title: 'Cloud Native', icon: Shield, desc: 'Built for modern infrastructure with seamless API and CI/CD integration.' },
+              { title: 'Global Discovery', icon: Globe, desc: 'Recursive asset mapping and categorization of your entire digital attack surface.', color: 'text-primary' },
+              { title: 'Continuous Auditing', icon: Activity, desc: 'Real-time engines scanning for SQLi, XSS, and critical cloud misconfigurations.', color: 'text-emerald-500' },
+              { title: 'AI Remediation', icon: Bot, desc: 'Gemini-integrated fixes. Professional code-level guidance for every finding.', color: 'text-violet-500' },
+              { title: 'Compliance GRC', icon: ShieldCheck, desc: 'Automatic mapping to OWASP Top 10, MITRE ATT&CK, and global frameworks.', color: 'text-blue-500' },
+              { title: 'Role-Based Access', icon: Lock, desc: 'Enterprise-grade RBAC for analysts, auditors, and executive leadership.', color: 'text-orange-500' },
+              { title: 'Immutable Auditing', icon: Database, desc: 'Persistent record-keeping of every system action for full regulatory compliance.', color: 'text-cyan-500' },
             ].map((feat, i) => (
               <motion.div 
                 key={i}
-                whileHover={{ y: -10 }}
-                className="glass-card p-8 border-white/5 flex flex-col items-start gap-6 group"
+                {...fadeInUp}
+                whileHover={{ y: -12, scale: 1.02 }}
+                className="glass-card p-10 border-white/5 flex flex-col items-start gap-8 group cursor-pointer transition-all duration-500"
               >
-                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                  <feat.icon className="w-7 h-7" />
+                <div className={cn("w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center transition-all duration-500 group-hover:bg-primary group-hover:text-white", feat.color)}>
+                  <feat.icon className="w-8 h-8" />
                 </div>
-                <div className="space-y-3">
-                  <h3 className="text-xl font-bold text-white">{feat.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feat.desc}</p>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-white tracking-tight">{feat.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed text-sm font-medium">{feat.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -157,32 +185,155 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Footer */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto glass-card p-12 lg:p-20 text-center space-y-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 cyber-gradient opacity-50"></div>
-          <h2 className="text-4xl lg:text-5xl font-headline font-bold text-white">Secure Your Infrastructure <br/>in Minutes</h2>
-          <p className="text-muted-foreground text-lg max-w-xl mx-auto">Join thousands of security professionals using SecureScan to stay ahead of the threat landscape.</p>
-          <div className="flex justify-center gap-4">
-            <Button size="lg" className="cyber-gradient rounded-full px-12 h-14 text-lg" asChild>
-              <Link href="/register">Get Started Free</Link>
-            </Button>
-          </div>
-          <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-[100px]"></div>
+      {/* Social Proof / Testimonial */}
+      <section className="py-32 px-8 bg-white/[0.01]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div {...fadeInUp} className="text-center space-y-12">
+            <div className="flex justify-center gap-1.5">
+              {[1, 2, 3, 4, 5].map(s => <Star key={s} className="w-6 h-6 fill-primary text-primary" />)}
+            </div>
+            <blockquote className="text-4xl lg:text-5xl font-headline font-bold text-white leading-tight italic">
+              "SecureScan has revolutionized how we manage our cloud perimeter. The AI remediation alone has saved our engineering team thousands of hours."
+            </blockquote>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-16 h-16 rounded-full cyber-gradient p-0.5 shadow-xl">
+                <div className="w-full h-full rounded-full bg-black overflow-hidden">
+                  <Image src="https://picsum.photos/seed/cto/200/200" width={100} height={100} alt="CTO" />
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-white font-bold tracking-tight text-lg">David Vance</p>
+                <p className="text-primary font-black uppercase tracking-[0.2em] text-[10px]">CISO, Global Financial Tech</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      <footer className="py-12 px-6 border-t border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-3">
-            <Shield className="text-primary w-6 h-6" />
-            <span className="text-xl font-headline font-bold text-white">SecureScan</span>
+      {/* Pricing Tier Focus */}
+      <section className="py-40 px-8 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-24 space-y-4">
+            <h2 className="text-4xl font-headline font-bold text-white tracking-tight">Strategic Licensing</h2>
+            <p className="text-muted-foreground font-medium">Predictable pricing for organizations at any scale.</p>
           </div>
-          <p className="text-sm text-muted-foreground">© 2024 SecureScan Technologies Inc. All rights reserved.</p>
-          <div className="flex gap-6 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            <Link href="#" className="hover:text-white">Privacy</Link>
-            <Link href="#" className="hover:text-white">Terms</Link>
-            <Link href="#" className="hover:text-white">Support</Link>
+          <div className="grid lg:grid-cols-3 gap-8">
+            {[
+              { title: 'Analyst Node', price: 'Free', features: ['3 Digital Assets', 'Weekly Auditing', 'Community Intelligence', 'Basic AI Summary'] },
+              { title: 'Enterprise Core', price: '$499', features: ['50 Digital Assets', 'Continuous Auditing', 'Custom GRC Mapping', 'Advanced AI Remediation', 'API Access', 'SSO Support'], featured: true },
+              { title: 'Sovereign', price: 'Custom', features: ['Unlimited Surface', 'Dedicated Engine Nodes', 'Whitelabel Reporting', '24/7 IR Support', 'On-Prem Hosting Options'] },
+            ].map((tier, i) => (
+              <motion.div 
+                key={i}
+                {...fadeInUp}
+                className={cn(
+                  "glass-card p-12 relative flex flex-col justify-between transition-all duration-500",
+                  tier.featured ? "border-primary/50 bg-primary/[0.03] scale-105 z-10" : "border-white/5"
+                )}
+              >
+                {tier.featured && <Badge className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white font-bold px-6 h-8 border-none">MOST POPULAR</Badge>}
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold text-white tracking-tight">{tier.title}</h3>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-5xl font-headline font-bold text-white">{tier.price}</span>
+                      {tier.price !== 'Free' && tier.price !== 'Custom' && <span className="text-muted-foreground font-bold">/mo</span>}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {tier.features.map(f => (
+                      <div key={f} className="flex items-center gap-3 text-sm text-white/70 font-medium">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                        {f}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Button className={cn("w-full mt-10 h-14 rounded-2xl font-bold text-lg transition-all", tier.featured ? "cyber-gradient text-white" : "bg-white/5 border border-white/10 text-white hover:bg-white/10")}>
+                  {tier.price === 'Custom' ? 'Contact Sales' : 'Initialize Tiers'}
+                </Button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Strategic FAQ */}
+      <section className="py-40 px-8 border-t border-white/5">
+        <div className="max-w-4xl mx-auto space-y-16">
+          <div className="text-center space-y-4">
+            <h2 className="text-4xl font-headline font-bold text-white tracking-tight">Technical Queries</h2>
+            <p className="text-muted-foreground font-medium">Common questions about the SecureScan ecosystem.</p>
+          </div>
+          <div className="grid gap-6">
+            {[
+              { q: "How does the AI remediation engine work?", a: "SecureScan utilizes Gemini 1.5 Flash to analyze the specific technical context of a finding (headers, code snippets, evidence) and generates step-by-step remediation plans tailored to your tech stack." },
+              { q: "Is the scan data stored securely?", a: "Absolutely. All data is encrypted at rest using AES-256 via Cloud Firestore. We follow industry best practices for data sovereignty and isolation." },
+              { q: "Can we integrate this with our SIEM?", a: "Yes. Enterprise customers have access to our REST API and machine-to-machine API keys to pipe security events directly into Splunk, Sentinel, or any other SIEM." }
+            ].map((faq, i) => (
+              <motion.div key={i} {...fadeInUp} className="glass-card p-8 space-y-3">
+                <h4 className="text-lg font-bold text-white flex items-center gap-3">
+                  <ShieldAlert className="w-5 h-5 text-primary" />
+                  {faq.q}
+                </h4>
+                <p className="text-muted-foreground leading-relaxed font-medium text-sm">{faq.a}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Command Footer */}
+      <section className="py-24 px-8 relative">
+        <div className="max-w-6xl mx-auto glass-card p-16 lg:p-24 text-center space-y-12 relative overflow-hidden rounded-[3rem]">
+          <div className="absolute top-0 left-0 w-full h-1.5 cyber-gradient opacity-60"></div>
+          <h2 className="text-5xl lg:text-7xl font-headline font-bold text-white tracking-tighter">Secure Your Surface <br/>in Real-Time.</h2>
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium leading-relaxed">Join elite security teams who use SecureScan to stay ahead of zero-days and configuration drift.</p>
+          <div className="flex justify-center gap-6">
+            <Button size="lg" className="cyber-gradient rounded-[2rem] px-16 h-18 text-xl font-bold text-white shadow-2xl shadow-primary/30 hover:scale-105 transition-all" asChild>
+              <Link href="/register">Initialize Command Center</Link>
+            </Button>
+          </div>
+          <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-primary/10 rounded-full blur-[100px]"></div>
+        </div>
+      </section>
+
+      <footer className="py-16 px-8 border-t border-white/5 bg-black/20 backdrop-blur-3xl">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-16 mb-20">
+          <div className="col-span-1 md:col-span-2 space-y-8">
+            <div className="flex items-center gap-4">
+              <Shield className="text-primary w-8 h-8" />
+              <span className="text-3xl font-headline font-bold text-white tracking-tighter">SecureScan<span className="text-primary italic">.</span></span>
+            </div>
+            <p className="text-muted-foreground font-medium leading-relaxed max-w-sm">
+              The premier digital integrity platform for high-compliance engineering teams. Automating defense at scale.
+            </p>
+          </div>
+          <div className="space-y-6">
+            <h5 className="text-[10px] font-black text-white tracking-[0.3em] uppercase">Intelligence</h5>
+            <div className="flex flex-col gap-4 text-sm font-bold text-muted-foreground">
+              <Link href="#" className="hover:text-primary transition-colors">Vulnerability Scan</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Threat Intel</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Audit Reports</Link>
+              <Link href="#" className="hover:text-primary transition-colors">AI Analysis</Link>
+            </div>
+          </div>
+          <div className="space-y-6">
+            <h5 className="text-[10px] font-black text-white tracking-[0.3em] uppercase">Operations</h5>
+            <div className="flex flex-col gap-4 text-sm font-bold text-muted-foreground">
+              <Link href="#" className="hover:text-primary transition-colors">Incident Response</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Compliance Hub</Link>
+              <Link href="#" className="hover:text-primary transition-colors">API Docs</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Support Node</Link>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">© 2024 SecureScan Technologies Corp.</p>
+          <div className="flex gap-10 text-[10px] font-black text-muted-foreground tracking-[0.2em] uppercase">
+            <Link href="#" className="hover:text-white transition-all">Privacy Protocol</Link>
+            <Link href="#" className="hover:text-white transition-all">Service Terms</Link>
+            <Link href="#" className="hover:text-white transition-all">SLA Agreement</Link>
           </div>
         </div>
       </footer>

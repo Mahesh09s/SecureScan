@@ -20,7 +20,9 @@ import {
   MessageSquare,
   LayoutGrid,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  FileText,
+  Binary
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { aiVulnerabilityExplanationAndFix } from '@/ai/flows/ai-vulnerability-explanation-and-fix';
@@ -60,18 +62,17 @@ export default function AIAssistantPage() {
 
   const filteredHistory = useMemo(() => {
     const userMessages = messages.filter(m => m.role === 'user');
-    if (!historySearch.trim()) return userMessages.reverse();
+    if (!historySearch.trim()) return [...userMessages].reverse();
     return userMessages.filter(m => 
       m.content.toLowerCase().includes(historySearch.toLowerCase())
     ).reverse();
   }, [messages, historySearch]);
 
-  // Handle auto-analysis if vulnId is provided
   useEffect(() => {
     if (vulnId && messages.length === 0 && !isTyping && currentUser) {
       analyzeVulnerabilityContext(vulnId);
     }
-  }, [vulnId, messages, currentUser]);
+  }, [vulnId, messages.length, currentUser]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -100,7 +101,7 @@ export default function AIAssistantPage() {
       });
 
       const assistantMsg = `### AI Security Assessment
-      
+
 #### Overview
 ${result.explanation}
 
@@ -224,7 +225,7 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
               </div>
             ))}
             {filteredHistory.length === 0 && !chatLoading && (
-              <div className="py-10 text-center opacity-20 italic text-[10px]">No history found.</div>
+              <div className="py-10 text-center opacity-20 italic text-[10px] text-white">No history found.</div>
             )}
           </div>
         </div>
@@ -242,8 +243,8 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col glass-card rounded-2xl overflow-hidden border-border relative">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-black/10">
+        <div className="flex-1 flex flex-col glass-card rounded-2xl overflow-hidden relative border-white/10">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-black/20">
             {messages.length === 0 && !chatLoading && (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
                 <div className="w-24 h-24 rounded-3xl cyber-gradient flex items-center justify-center shadow-2xl shadow-primary/20 animate-pulse">
