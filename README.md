@@ -66,6 +66,7 @@ For detailed production instructions, including Docker and SSL configuration, re
 ---
 
 ## 📖 Documentation
+- [**Technical Architecture**](./docs/ARCHITECTURE.md)
 - [**Internal API Specs**](./docs/API.md)
 - [**Deployment Roadmap**](./docs/DEPLOYMENT.md)
 - [**Testing & QA Strategy**](./docs/TESTING.md)
