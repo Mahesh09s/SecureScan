@@ -59,16 +59,6 @@ export default function LandingPage() {
     transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
   };
 
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#030712] overflow-x-hidden selection:bg-primary selection:text-white">
       {/* Animated Background Layers */}
@@ -90,7 +80,7 @@ export default function LandingPage() {
           </div>
           
           <div className="hidden lg:flex items-center gap-12">
-            {['Intelligence', 'Architecture', 'Compliance', 'Pricing'].map(item => (
+            {['Intelligence', 'Architecture', 'Compliance', 'Access'].map(item => (
               <Link key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-bold text-muted-foreground hover:text-white transition-all tracking-[0.25em] uppercase">
                 {item}
               </Link>
@@ -168,7 +158,6 @@ export default function LandingPage() {
                 className="w-full h-auto rounded-[2.5rem] shadow-2xl opacity-90"
               />
               
-              {/* Dynamic Overlay Components */}
               <motion.div 
                 animate={{ y: [0, -25, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -201,7 +190,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Feature Architecture: Elite Operations */}
+      {/* Feature Architecture */}
       <section id="architecture" className="py-48 px-8 relative">
         <div className="max-w-7xl mx-auto space-y-32">
           <div className="text-center max-w-4xl mx-auto space-y-8">
@@ -238,156 +227,84 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works: The Pipeline */}
-      <section className="py-48 px-8 border-y border-white/5 relative overflow-hidden bg-white/[0.01]">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-32 items-center">
-          <motion.div {...fadeInUp} className="space-y-16">
-            <div className="space-y-8 text-left">
-              <h2 className="text-6xl font-headline font-bold text-white tracking-tight leading-[1.1]">
-                Zero to Remediation <br />
-                in <span className="text-primary italic">60 Seconds.</span>
-              </h2>
-              <p className="text-2xl text-muted-foreground leading-relaxed font-medium opacity-80">
-                Our automated workflow eliminates the latency between detection and fix.
-              </p>
-            </div>
-
-            <div className="space-y-10">
-              {[
-                { step: '01', title: 'Asset Authorization', desc: 'SecureScan crawls and validates ownership of your digital perimeter.' },
-                { step: '02', title: 'Orchestrated Audit', desc: 'Industry-standard scanners perform high-intensity telemetry extraction.' },
-                { step: '03', title: 'AI Synthesis', desc: 'Gemini analyzes findings to generate step-by-step remediation plans.' },
-              ].map((item, i) => (
-                <div key={i} className="flex gap-10 group">
-                  <div className="text-5xl font-headline font-black text-primary/10 group-hover:text-primary transition-all duration-500">{item.step}</div>
-                  <div className="space-y-3 pt-2">
-                    <h4 className="text-2xl font-bold text-white">{item.title}</h4>
-                    <p className="text-muted-foreground text-lg leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div {...fadeInUp} className="relative group">
-            <div className="glass-card rounded-[3rem] p-10 space-y-8 bg-black/60 border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 blur-[100px] rounded-full"></div>
-              <div className="flex items-center justify-between pb-6 border-b border-white/5">
-                <div className="flex items-center gap-4">
-                  <Terminal className="w-6 h-6 text-primary" />
-                  <span className="text-xs font-mono font-bold text-white uppercase tracking-[0.3em]">Active Audit Node: SS-BETA</span>
-                </div>
-                <Badge variant="outline" className="animate-pulse bg-emerald-500/20 text-emerald-500 border-emerald-500/30 px-4 py-1">SYNCHRONIZING</Badge>
-              </div>
-              
-              <div className="font-mono text-[11px] space-y-4 text-white/50 leading-relaxed">
-                <p className="text-primary font-bold">[INITIALIZE] Engine Orchestration: Nuclei 3.0</p>
-                <p>[TELEMETRY] Requesting metadata from /api/v2/secure-auth...</p>
-                <p className="text-yellow-500 font-bold">[ALERT] CVE-2023-4481: Buffer Overflow detected.</p>
-                <p className="text-violet-400 font-bold">[AI_AGENT] Generating exploit mitigation logic...</p>
-                
-                <div className="pt-8 mt-4 border-t border-white/5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Bot className="w-5 h-5 text-violet-400" />
-                    <p className="text-white font-bold text-xs">AI Remediation Fix Available:</p>
-                  </div>
-                  <div className="bg-black/80 p-6 rounded-2xl border border-violet-500/20 text-violet-300 font-bold shadow-inner">
-                    {"// Mitigate injection via prepared statements\nconst user = await db.query(\n  'SELECT * FROM users WHERE id = $1',\n  [userId]\n);"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing: Scale for Defense */}
-      <section id="pricing" className="py-48 px-8 relative">
+      {/* Free Community Access */}
+      <section id="access" className="py-48 px-8 relative">
         <div className="max-w-7xl mx-auto space-y-24">
           <div className="text-center max-w-4xl mx-auto space-y-8">
-            <h2 className="text-6xl font-headline font-bold text-white tracking-tight">Strategic Security Tiers</h2>
-            <p className="text-2xl text-muted-foreground leading-relaxed font-medium">Choose your level of intelligence and orchestration.</p>
+            <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Protocol Access</Badge>
+            <h2 className="text-6xl font-headline font-bold text-white tracking-tight">Open Security Intelligence</h2>
+            <p className="text-2xl text-muted-foreground leading-relaxed font-medium">Free, forever-available platform for authorized security testing and education.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-10">
-            {[
-              { 
-                name: 'Node', 
-                price: '0', 
-                desc: 'For independent researchers and internal testing nodes.',
-                features: ['1 Authorized Asset', 'Nuclei CVE Scanning', 'Standard Scan Logs', 'Community Intel Sync'] 
-              },
-              { 
-                name: 'Sentinel', 
-                price: '499', 
-                popular: true,
-                desc: 'Full-spectrum auditing for scaling engineering teams.',
-                features: ['10 Managed Assets', 'Gemini AI Remediation', 'Executive PDF Reports', 'Custom Scan Scheduling', '24h Vulnerability Sync'] 
-              },
-              { 
-                name: 'Fortress', 
-                price: '1,999', 
-                desc: 'The complete GRC and offensive security command center.',
-                features: ['Unlimited Assets', 'Full REST API & SIEM Integration', 'Custom GRC Framework Mapping', 'Dedicated Support Analyst', 'Audit Log Archiving'] 
-              }
-            ].map((plan, i) => (
-              <motion.div 
-                key={i}
-                {...fadeInUp}
-                className={cn(
-                  "glass-card p-12 flex flex-col gap-12 relative group transition-all duration-700",
-                  plan.popular ? "border-primary/40 shadow-[0_40px_100px_rgba(59,130,246,0.1)] ring-1 ring-white/10 scale-105 z-10" : "border-white/5"
-                )}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black tracking-[0.4em] px-6 py-2 rounded-full uppercase shadow-2xl">
-                    Most Recommended
-                  </div>
-                )}
-                <div className="space-y-6">
-                  <h3 className="text-3xl font-headline font-black text-white tracking-widest uppercase">{plan.name}</h3>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-6xl font-headline font-bold text-white">${plan.price}</span>
-                    <span className="text-muted-foreground text-sm font-bold uppercase tracking-widest">/ Mo</span>
-                  </div>
-                  <p className="text-lg text-muted-foreground font-medium opacity-80">{plan.desc}</p>
-                </div>
+          <div className="max-w-4xl mx-auto">
+            <motion.div 
+              {...fadeInUp}
+              className="glass-card p-12 lg:p-16 flex flex-col gap-12 relative group transition-all duration-700 border-primary/40 shadow-[0_40px_100px_rgba(59,130,246,0.1)] ring-1 ring-white/10"
+            >
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-black tracking-[0.4em] px-6 py-2 rounded-full uppercase shadow-2xl">
+                Open Source & Research
+              </div>
 
-                <div className="space-y-5 flex-1 pt-6 border-t border-white/5">
-                  {plan.features.map((feat, j) => (
-                    <div key={j} className="flex items-center gap-4">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                      <span className="text-sm font-bold text-white/80">{feat}</span>
-                    </div>
-                  ))}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <div className="space-y-4">
+                  <h3 className="text-4xl font-headline font-black text-white tracking-widest uppercase">Free Community Edition</h3>
+                  <p className="text-lg text-muted-foreground font-medium opacity-80 max-w-xl">
+                    Built for students, researchers, cybersecurity learners, and authorized security assessments.
+                  </p>
                 </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-6xl font-headline font-bold text-white">FREE</span>
+                  <span className="text-emerald-500 text-sm font-bold uppercase tracking-widest mt-2">Life-Time Access</span>
+                </div>
+              </div>
 
-                <Button className={cn(
-                  "w-full h-16 rounded-2xl font-black text-sm uppercase tracking-widest transition-all",
-                  plan.popular ? "cyber-gradient text-white shadow-2xl shadow-primary/30" : "bg-white/5 border border-white/10 hover:bg-white/10 text-white"
-                )}>
-                  Provision {plan.name} Node
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 pt-12 border-t border-white/5">
+                {[
+                  'Unlimited Dashboard Access', 'Asset Management', 'Vulnerability Scanning',
+                  'AI Security Assistant', 'Security Reports (PDF, CSV, JSON)', 'Risk Score Dashboard',
+                  'Compliance Dashboard', 'Vulnerability Management', 'Scan History',
+                  'Notification Center', 'Audit Logs', 'Role-Based Authentication',
+                  'Responsive Dashboard', 'Dark Theme', 'Real-Time Analytics',
+                  'Educational & Research Use'
+                ].map((feat, j) => (
+                  <div key={j} className="flex items-center gap-4">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <span className="text-sm font-bold text-white/80">{feat}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-6 pt-12 border-t border-white/5">
+                <Button asChild className="w-full h-20 cyber-gradient text-white text-xl font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 border-none hover:scale-105 active:scale-95 transition-all">
+                  <Link href="/register">Launch SecureScan <ArrowRight className="ml-3 w-7 h-7" /></Link>
                 </Button>
-              </motion.div>
-            ))}
+                <p className="text-center text-muted-foreground text-sm font-medium">
+                  No subscription required. Built for learning, research, and authorized security testing.
+                </p>
+              </div>
+            </motion.div>
+            
+            <p className="text-center mt-12 text-muted-foreground/60 text-sm italic max-w-2xl mx-auto leading-relaxed">
+              "SecureScan is intended exclusively for educational purposes and authorized security assessments. Users must obtain proper authorization before scanning any systems."
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Intelligence FAQ */}
+      {/* FAQ */}
       <section className="py-48 px-8 border-t border-white/5 relative">
         <div className="max-w-4xl mx-auto space-y-24">
           <div className="text-center space-y-6">
             <h2 className="text-5xl font-headline font-bold text-white tracking-tight">Technical Intelligence FAQ</h2>
-            <p className="text-xl text-muted-foreground">Detailed protocol information for analysts and CISOs.</p>
+            <p className="text-xl text-muted-foreground">Detailed protocol information for analysts and researchers.</p>
           </div>
 
           <Accordion type="single" collapsible className="space-y-6">
             {[
               { q: "Is vulnerability scanning fully authorized?", a: "SecureScan is built on the principle of authorized testing. Users must prove ownership or explicit permission for any target. Every scan is cryptographically signed and logged in an immutable audit trail." },
               { q: "How does the AI remediation logic work?", a: "Our system utilizes Gemini 1.5 Pro to synthesize technical scan findings into human-readable code fixes. It analyzes the specific telemetry of your assets to ensure remediation plans are contextually accurate." },
-              { q: "Can SecureScan integrate with SIEM platforms?", a: "Yes. Fortress tier users can export live telemetry to Splunk, Sentinel, and Elastic via our robust REST API and specialized connectors." },
-              { q: "What frameworks are supported for GRC?", a: "We provide automated mapping to OWASP Top 10 (2021), MITRE ATT&CK, NIST CSF 2.0, and PCI DSS 4.0 within our enterprise reports." },
+              { q: "Is the platform really free?", a: "Yes. The Community Edition is designed as a contribution to the cybersecurity community, supporting students and researchers in learning defensive security operations." },
+              { q: "What frameworks are supported for GRC?", a: "We provide automated mapping to OWASP Top 10 (2021), MITRE ATT&CK, NIST CSF 2.0, and PCI DSS 4.0 within our reports." },
             ].map((item, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="glass-card px-10 border-white/5 rounded-[2rem] overflow-hidden">
                 <AccordionTrigger className="text-white hover:no-underline font-bold text-xl py-8 text-left group">
@@ -414,7 +331,7 @@ export default function LandingPage() {
                 <span className="text-primary italic">Digital Surface?</span>
               </h2>
               <p className="text-2xl text-muted-foreground leading-relaxed max-w-xl font-medium opacity-80">
-                Our security engineering team provides custom architectural reviews and deployment strategies for enterprise nodes.
+                Our security engineering team provides support and guidance for educational research and enterprise audits.
               </p>
               <div className="flex flex-col sm:flex-row gap-12 pt-8">
                 <div className="flex items-center gap-5">
@@ -441,15 +358,15 @@ export default function LandingPage() {
             <div className="w-full lg:w-[500px] relative z-10">
               <div className="glass-card p-12 rounded-[3rem] border-white/5 space-y-8 bg-black/40">
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Corporate Identity</label>
-                  <input type="text" placeholder="Authorized Contact" className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 text-white outline-none focus:ring-1 focus:ring-primary transition-all" />
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Operator Identity</label>
+                  <input type="text" placeholder="Authorized Name" className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 text-white outline-none focus:ring-1 focus:ring-primary transition-all" />
                 </div>
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Secure Endpoint</label>
-                  <input type="email" placeholder="official@organization.com" className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 text-white outline-none focus:ring-1 focus:ring-primary transition-all" />
+                  <input type="email" placeholder="official@endpoint.com" className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 text-white outline-none focus:ring-1 focus:ring-primary transition-all" />
                 </div>
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Mission Context</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Research Context</label>
                   <textarea placeholder="Describe your security requirements..." className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-6 text-white outline-none focus:ring-1 focus:ring-primary resize-none transition-all"></textarea>
                 </div>
                 <Button className="w-full h-20 cyber-gradient rounded-[1.5rem] text-xl font-black uppercase tracking-[0.2em] text-white shadow-2xl shadow-primary/30 border-none hover:scale-105 active:scale-95 transition-all">
@@ -471,7 +388,7 @@ export default function LandingPage() {
                 <span className="text-4xl font-headline font-bold text-white tracking-tighter">SecureScan<span className="text-primary italic">.</span></span>
               </div>
               <p className="text-xl text-muted-foreground font-medium leading-relaxed max-w-md opacity-80">
-                The premier digital integrity platform for high-compliance engineering teams. Orchestrating professional defense at global scale.
+                The premier digital integrity platform for researchers and security teams. Orchestrating professional defense at global scale.
               </p>
               <div className="flex gap-6 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
                  {['GDPR', 'HIPAA', 'SOC2', 'PCI'].map(badge => (
