@@ -16,7 +16,8 @@ import {
   ShieldCheck,
   Trash2,
   Edit2,
-  LayoutGrid
+  LayoutGrid,
+  Tag
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -48,7 +49,8 @@ import {
   FormField, 
   FormItem, 
   FormLabel, 
-  FormMessage 
+  FormMessage,
+  FormDescription
 } from "@/components/ui/form";
 import { 
   Select, 
@@ -56,7 +58,7 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from "@/components/ui/select";
+} from "@/select";
 import { cn } from '@/lib/utils';
 import { useCollection, useFirestore, useAuth } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, where, orderBy } from 'firebase/firestore';
@@ -71,28 +73,29 @@ const assetSchema = z.object({
   type: z.enum(["Website", "Domain", "Server", "IP"]),
   environment: z.string().default("Production"),
   description: z.string().optional(),
+  tags: z.string().optional(), // We'll handle comma-separated string in UI and array in DB
 });
 
 type AssetFormValues = z.infer<typeof assetSchema>;
 
 export default function AssetsPage() {
   const firestore = useFirestore();
-  const auth = useAuth();
+  const { currentUser } = useAuth();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const assetsQuery = useMemo(() => {
-    if (!firestore || !auth?.currentUser) return null;
+    if (!firestore || !currentUser) return null;
     return query(
       collection(firestore, 'assets'),
-      where('ownerId', '==', auth.currentUser.uid),
+      where('ownerId', '==', currentUser.uid),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, auth?.currentUser]);
+  }, [firestore, currentUser]);
 
-  const { data: assets, loading } = useCollection(assetsQuery);
+  const { data: assets, loading } = useCollection<any>(assetsQuery);
 
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetSchema),
@@ -102,24 +105,32 @@ export default function AssetsPage() {
       type: "Website",
       environment: "Production",
       description: "",
+      tags: "",
     },
   });
 
   const onSubmit = async (values: AssetFormValues) => {
-    if (!firestore || !auth?.currentUser) return;
+    if (!firestore || !currentUser) return;
+
+    // Convert tags string to array
+    const tagsArray = values.tags 
+      ? values.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      : [];
 
     try {
       if (editingAsset) {
         const assetRef = doc(firestore, 'assets', editingAsset.id);
-        updateDoc(assetRef, {
+        await updateDoc(assetRef, {
           ...values,
+          tags: tagsArray,
           updatedAt: serverTimestamp(),
         });
         toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
       } else {
-        addDoc(collection(firestore, 'assets'), {
+        await addDoc(collection(firestore, 'assets'), {
           ...values,
-          ownerId: auth.currentUser.uid,
+          tags: tagsArray,
+          ownerId: currentUser.uid,
           status: "Healthy",
           createdAt: serverTimestamp(),
         });
@@ -129,14 +140,19 @@ export default function AssetsPage() {
       setEditingAsset(null);
       form.reset();
     } catch (error) {
+      console.error(error);
       toast({ variant: "destructive", title: "Error", description: "Something went wrong. Please try again." });
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!firestore) return;
-    deleteDoc(doc(firestore, 'assets', id));
-    toast({ title: "Asset Deleted", description: "The asset has been removed from your inventory." });
+    try {
+      await deleteDoc(doc(firestore, 'assets', id));
+      toast({ title: "Asset Deleted", description: "The asset has been removed from your inventory." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete asset." });
+    }
   };
 
   const filteredAssets = assets?.filter(a => 
@@ -206,7 +222,7 @@ export default function AssetsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-white/5 border-white/10">
                               <SelectValue placeholder="Select type" />
@@ -229,7 +245,7 @@ export default function AssetsPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Environment</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-white/5 border-white/10">
                               <SelectValue placeholder="Select env" />
@@ -246,6 +262,22 @@ export default function AssetsPage() {
                     )}
                   />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="tags"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tags</FormLabel>
+                      <FormControl>
+                        <Input placeholder="api, backend, internal" {...field} className="bg-white/5 border-white/10" />
+                      </FormControl>
+                      <FormDescription className="text-[10px]">
+                        Comma separated tags.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="description"
@@ -296,6 +328,7 @@ export default function AssetsPage() {
                 <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Asset</TableHead>
                 <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Target</TableHead>
                 <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Environment</TableHead>
+                <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Tags</TableHead>
                 <TableHead className="text-xs font-bold uppercase tracking-wider text-muted-foreground py-4">Status</TableHead>
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
@@ -319,6 +352,15 @@ export default function AssetsPage() {
                     <Badge variant="outline" className="text-[10px] uppercase font-bold text-muted-foreground border-white/10">
                       {asset.environment}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {asset.tags?.map((tag: string) => (
+                        <Badge key={tag} variant="secondary" className="text-[9px] px-1.5 py-0 bg-white/5 border-white/10 text-muted-foreground">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -345,6 +387,7 @@ export default function AssetsPage() {
                             type: asset.type,
                             environment: asset.environment,
                             description: asset.description || "",
+                            tags: asset.tags?.join(', ') || "",
                           });
                           setIsDialogOpen(true);
                         }} className="gap-2">
