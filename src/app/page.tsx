@@ -60,7 +60,7 @@ export default function LandingPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
               <Zap className="w-3 h-3 fill-primary" />
-              Next-Gen Vulnerability Intelligence
+              Vulnerability Intelligence
             </div>
             <h1 className="text-5xl lg:text-7xl font-headline font-bold text-white leading-[1.1]">
               Automate Your <span className="text-primary italic">Security</span> Perimeter
