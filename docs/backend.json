@@ -6,56 +6,60 @@
       "description": "A security target to be scanned",
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string",
-          "description": "Display name of the asset"
-        },
-        "target": {
-          "type": "string",
-          "description": "URL, Domain, or IP address of the target"
-        },
-        "type": {
-          "type": "string",
-          "enum": ["Website", "Domain", "Server", "IP"],
-          "description": "Type of asset"
-        },
-        "environment": {
-          "type": "string",
-          "description": "The environment (e.g., Production, Staging)"
-        },
-        "description": {
-          "type": "string",
-          "description": "Detailed description"
-        },
-        "tags": {
-          "type": "array",
-          "items": { "type": "string" },
-          "description": "Categorization tags"
-        },
-        "status": {
-          "type": "string",
-          "enum": ["Healthy", "Vulnerable", "Scanning"],
-          "description": "Current security status"
-        },
-        "ownerId": {
-          "type": "string",
-          "description": "UID of the user who owns this asset"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
+        "name": { "type": "string" },
+        "target": { "type": "string" },
+        "type": { "type": "string", "enum": ["Website", "Domain", "Server", "IP"] },
+        "environment": { "type": "string" },
+        "status": { "type": "string", "enum": ["Healthy", "Vulnerable", "Scanning"] },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["name", "target", "type", "ownerId"]
+    },
+    "Scan": {
+      "title": "Scan",
+      "description": "An execution of a scanning tool",
+      "type": "object",
+      "properties": {
+        "assetId": { "type": "string" },
+        "target": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "In Progress", "Completed", "Failed"] },
+        "progress": { "type": "number" },
+        "logs": { "type": "array", "items": { "type": "string" } },
+        "vulnerabilitiesFound": { "type": "number" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "ownerId": { "type": "string" }
+      },
+      "required": ["assetId", "type", "status", "ownerId"]
+    },
+    "Vulnerability": {
+      "title": "Vulnerability",
+      "description": "A detected security finding",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "severity": { "type": "string", "enum": ["Critical", "High", "Medium", "Low", "Info"] },
+        "description": { "type": "string" },
+        "impact": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "assetId": { "type": "string" },
+        "scanId": { "type": "string" },
+        "cve": { "type": "string" },
+        "source": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "severity", "assetId", "ownerId"]
     }
   },
   "auth": {
     "providers": ["google.com", "password"]
   },
   "firestore": {
-    "/assets/{assetId}": {
-      "schema": "Asset",
-      "description": "Top-level collection for security assets"
-    }
+    "/assets/{assetId}": { "schema": "Asset" },
+    "/scans/{scanId}": { "schema": "Scan" },
+    "/vulnerabilities/{vulnId}": { "schema": "Vulnerability" }
   }
 }

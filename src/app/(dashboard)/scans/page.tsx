@@ -1,65 +1,133 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Zap, Play, Square, RefreshCcw, Search, List, Activity, Terminal } from 'lucide-react';
+import { Zap, Play, Square, RefreshCcw, Search, List, Activity, Terminal, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useFirestore, useAuth, useCollection } from '@/firebase';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 const scanTypes = [
-  { id: 'full', name: 'Comprehensive Scan', description: 'Port scan, headers, and full vuln search', icon: Zap },
-  { id: 'port', name: 'Port Scanning', description: 'Identify open services and fingerprinting', icon: List },
-  { id: 'header', name: 'HTTP Security Headers', description: 'Analyze response headers for security best practices', icon: Search },
-  { id: 'ssl', name: 'SSL/TLS Assessment', description: 'Check certificates and cipher suite vulnerabilities', icon: Activity },
+  { id: 'full', name: 'Comprehensive Scan', description: 'Port scan, nuclei templates, and full vuln search', icon: Zap },
+  { id: 'nmap', name: 'Nmap Port Scan', description: 'Port discovery and service fingerprinting', icon: List },
+  { id: 'header', name: 'HTTP Header Scanner', description: 'Analyze response headers for security best practices', icon: Search },
+  { id: 'ssl', name: 'SSL Checker', description: 'Check certificates and cipher suite vulnerabilities', icon: Activity },
 ];
 
 export default function ScansPage() {
-  const [isScanning, setIsScanning] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [log, setLog] = useState<string[]>([]);
+  const firestore = useFirestore();
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+  
+  const [activeScanId, setActiveScanId] = useState<string | null>(null);
+  const [activeScan, setActiveScan] = useState<any>(null);
+  const [selectedAssetId, setSelectedAssetId] = useState<string>("");
+  const [selectedScanType, setSelectedScanType] = useState<string>("full");
 
+  // Fetch Assets for selection
+  const assetsQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(collection(firestore, 'assets'), where('ownerId', '==', currentUser.uid));
+  }, [firestore, currentUser]);
+  const { data: assets } = useCollection<any>(assetsQuery);
+
+  // Fetch Recent Scans
+  const recentScansQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(
+      collection(firestore, 'scans'), 
+      where('ownerId', '==', currentUser.uid),
+      orderBy('startedAt', 'desc'),
+      limit(5)
+    );
+  }, [firestore, currentUser]);
+  const { data: recentScans } = useCollection<any>(recentScansQuery);
+
+  // Real-time listener for active scan
   useEffect(() => {
-    let interval: any;
-    if (isScanning && progress < 100) {
-      interval = setInterval(() => {
-        setProgress(prev => {
-          const next = prev + Math.random() * 5;
-          if (next >= 100) {
-            setIsScanning(false);
-            setLog(prevLog => [...prevLog, "[COMPLETE] Scan finished successfully.", "Found 4 vulnerabilities."]);
-            return 100;
-          }
-          return next;
-        });
-
-        // Add dummy logs
-        if (Math.random() > 0.7) {
-          const steps = [
-            "Initializing Nmap...",
-            "Scanning ports 1-1024...",
-            "Service detection for 443/tcp...",
-            "Analyzing security headers...",
-            "Performing directory enumeration...",
-            "Checking CVE-2023-44487..."
-          ];
-          setLog(prevLog => [...prevLog.slice(-10), `[LOG] ${steps[Math.floor(Math.random() * steps.length)]}`]);
+    if (!firestore || !activeScanId) return;
+    const unsubscribe = onSnapshot(doc(firestore, 'scans', activeScanId), (doc) => {
+      if (doc.exists()) {
+        const data = doc.data();
+        setActiveScan(data);
+        if (data.status === 'Completed' || data.status === 'Failed') {
+          setActiveScanId(null);
         }
-      }, 800);
-    }
-    return () => clearInterval(interval);
-  }, [isScanning, progress]);
+      }
+    });
+    return () => unsubscribe();
+  }, [firestore, activeScanId]);
 
-  const startScan = () => {
-    setIsScanning(true);
-    setProgress(0);
-    setLog(["[START] Initiating scan for: api.securescan.io", "Setting up environment..."]);
+  const startScan = async () => {
+    if (!firestore || !currentUser || !selectedAssetId) {
+      toast({ variant: "destructive", title: "Missing Asset", description: "Please select an asset to scan." });
+      return;
+    }
+
+    const asset = assets.find(a => a.id === selectedAssetId);
+    
+    try {
+      const scanRef = await addDoc(collection(firestore, 'scans'), {
+        assetId: selectedAssetId,
+        target: asset?.target || "Unknown",
+        type: selectedScanType,
+        status: "In Progress",
+        progress: 0,
+        logs: [`[START] Initiating ${selectedScanType} scan for: ${asset?.target}`],
+        vulnerabilitiesFound: 0,
+        ownerId: currentUser.uid,
+        startedAt: serverTimestamp(),
+      });
+
+      setActiveScanId(scanRef.id);
+      
+      // Update asset status
+      await updateDoc(doc(firestore, 'assets', selectedAssetId), { status: "Scanning" });
+
+      // Run simulation (In production, this would be a background job / cloud function)
+      simulateScan(scanRef.id, asset);
+
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Scan Error", description: "Failed to launch scan engine." });
+    }
   };
 
-  const stopScan = () => {
-    setIsScanning(false);
-    setLog(prev => [...prev, "[INTERRUPTED] User cancelled the scan."]);
+  const simulateScan = async (scanId: string, asset: any) => {
+    if (!firestore) return;
+    
+    const scanRef = doc(firestore, 'scans', scanId);
+    const steps = [
+      { p: 10, log: "Initializing scan engine nodes..." },
+      { p: 25, log: `Running Nmap discovery on ${asset.target}...` },
+      { p: 40, log: "Analyzing SSL/TLS certificate chains..." },
+      { p: 60, log: "Performing OWASP ZAP baseline web crawling..." },
+      { p: 80, log: "Executing Nuclei high-severity templates..." },
+      { p: 95, log: "Compiling vulnerability report..." },
+    ];
+
+    for (const step of steps) {
+      await new Promise(r => setTimeout(r, 1500));
+      await updateDoc(scanRef, {
+        progress: step.p,
+        logs: [...(activeScan?.logs || []), `[LOG] ${step.log}`]
+      });
+    }
+
+    // Finalize
+    await updateDoc(scanRef, {
+      progress: 100,
+      status: "Completed",
+      completedAt: serverTimestamp(),
+      logs: [...(activeScan?.logs || []), "[COMPLETE] Scan finished. Findings available in Vulnerabilities page."]
+    });
+    
+    await updateDoc(doc(firestore, 'assets', asset.id), { status: "Healthy" });
   };
 
   return (
@@ -73,20 +141,47 @@ export default function ScansPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card className="glass-card">
             <CardHeader>
-              <CardTitle className="text-lg font-headline">Quick Start</CardTitle>
+              <CardTitle className="text-lg font-headline">Target Selection</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {scanTypes.map(type => (
-                <div key={type.id} className="p-4 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-pointer group">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                      <type.icon className="w-5 h-5" />
+            <CardContent className="space-y-4">
+              <select 
+                value={selectedAssetId}
+                onChange={(e) => setSelectedAssetId(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white outline-none focus:ring-1 focus:ring-primary/50"
+              >
+                <option value="" className="bg-card">Select an Asset...</option>
+                {assets?.map(asset => (
+                  <option key={asset.id} value={asset.id} className="bg-card">
+                    {asset.name} ({asset.target})
+                  </option>
+                ))}
+              </select>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {scanTypes.map(type => (
+                  <div 
+                    key={type.id} 
+                    onClick={() => setSelectedScanType(type.id)}
+                    className={cn(
+                      "p-4 rounded-2xl border transition-all cursor-pointer group",
+                      selectedScanType === type.id 
+                        ? "bg-primary/20 border-primary shadow-lg shadow-primary/10" 
+                        : "bg-white/5 border-white/5 hover:bg-white/10"
+                    )}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={cn(
+                        "p-2 rounded-lg transition-colors",
+                        selectedScanType === type.id ? "bg-primary text-white" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white"
+                      )}>
+                        <type.icon className="w-5 h-5" />
+                      </div>
+                      <span className="font-bold text-white">{type.name}</span>
                     </div>
-                    <span className="font-bold text-white">{type.name}</span>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">{type.description}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -96,22 +191,22 @@ export default function ScansPage() {
                 <Terminal className="w-5 h-5 text-primary" />
                 <CardTitle className="text-lg font-headline">Live Output</CardTitle>
               </div>
-              {isScanning && (
+              {activeScan && (
                 <Badge variant="outline" className="animate-pulse bg-primary/20 text-primary border-primary/30">
                   SCANNING
                 </Badge>
               )}
             </CardHeader>
             <CardContent>
-              <div className="bg-black/40 rounded-xl p-4 font-code text-xs space-y-2 h-[300px] overflow-y-auto scrollbar-hide border border-white/5">
-                {log.length === 0 && <p className="text-muted-foreground/50 italic">Waiting for scan to start...</p>}
-                {log.map((entry, i) => (
+              <div className="bg-black/40 rounded-xl p-4 font-code text-[10px] space-y-1.5 h-[350px] overflow-y-auto scrollbar-hide border border-white/5">
+                {!activeScan && <p className="text-muted-foreground/50 italic">Waiting for scan to start...</p>}
+                {(activeScan?.logs || []).map((entry: string, i: number) => (
                   <p key={i} className={cn(
                     "flex gap-3",
-                    entry.includes('[COMPLETE]') ? "text-emerald-500" : entry.includes('[START]') ? "text-primary" : entry.includes('[INTERRUPTED]') ? "text-destructive" : "text-white/70"
+                    entry.includes('[COMPLETE]') ? "text-emerald-400" : entry.includes('[START]') ? "text-primary font-bold" : "text-white/60"
                   )}>
-                    <span className="opacity-30">[{new Date().toLocaleTimeString()}]</span>
-                    {entry}
+                    <span className="opacity-30 whitespace-nowrap">[{new Date().toLocaleTimeString([], { hour12: false })}]</span>
+                    <span className="break-all">{entry}</span>
                   </p>
                 ))}
               </div>
@@ -122,53 +217,64 @@ export default function ScansPage() {
         <div className="space-y-6">
           <Card className="glass-card">
             <CardHeader>
-              <CardTitle className="text-lg font-headline">Scan Control</CardTitle>
+              <CardTitle className="text-lg font-headline">Execution Control</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Selected Target</label>
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-sm">
-                  api.securescan.io
-                </div>
-              </div>
-
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Progress</label>
-                  <span className="text-xl font-headline font-bold text-primary">{Math.round(progress)}%</span>
+                  <span className="text-xl font-headline font-bold text-primary">{activeScan?.progress || 0}%</span>
                 </div>
-                <Progress value={progress} className="h-2 bg-white/5" />
-                <div className="flex justify-between text-[10px] text-muted-foreground font-medium">
-                  <span>EST. TIME: 4m 20s</span>
-                  <span>THREADS: 16</span>
-                </div>
+                <Progress value={activeScan?.progress || 0} className="h-2 bg-white/5" />
               </div>
 
-              <div className="flex gap-3">
-                {!isScanning ? (
-                  <Button onClick={startScan} className="flex-1 cyber-gradient h-12 rounded-xl gap-2 text-white font-bold">
-                    <Play className="w-4 h-4 fill-white" />
-                    Launch Scan
-                  </Button>
-                ) : (
-                  <Button onClick={stopScan} variant="destructive" className="flex-1 h-12 rounded-xl gap-2 font-bold">
+              <div className="flex flex-col gap-3">
+                <Button 
+                  onClick={startScan} 
+                  disabled={!!activeScanId || !selectedAssetId}
+                  className="w-full cyber-gradient h-12 rounded-xl gap-2 text-white font-bold"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  Launch SecureScan
+                </Button>
+                
+                {activeScanId && (
+                  <Button variant="destructive" className="w-full h-12 rounded-xl gap-2 font-bold">
                     <Square className="w-4 h-4 fill-white" />
-                    Stop Scan
+                    Emergency Stop
                   </Button>
                 )}
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl border-white/10" onClick={() => { setProgress(0); setLog([]); }}>
-                  <RefreshCcw className="w-4 h-4" />
-                </Button>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-card bg-primary/5 border-primary/20">
-            <CardContent className="p-6">
-              <h4 className="text-sm font-bold text-white mb-2">Security Tip</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Perform header scans weekly to ensure your servers haven't regressed after configuration changes.
-              </p>
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="text-sm font-headline uppercase tracking-wider text-muted-foreground">Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y divide-white/5">
+                {recentScans?.map((scan: any) => (
+                  <div key={scan.id} className="p-4 hover:bg-white/5 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="text-xs font-bold text-white truncate max-w-[150px]">{scan.target}</span>
+                      <Badge variant="outline" className={cn(
+                        "text-[9px] px-1.5 py-0",
+                        scan.status === 'Completed' ? "text-emerald-400 border-emerald-400/20" : "text-primary border-primary/20"
+                      )}>
+                        {scan.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+                      <span>{scan.type}</span>
+                      <span>{scan.startedAt?.toDate().toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                ))}
+                {(!recentScans || recentScans.length === 0) && (
+                  <div className="p-8 text-center text-xs text-muted-foreground">No recent scans.</div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
