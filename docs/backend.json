@@ -55,6 +55,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "severity", "assetId", "ownerId"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A message in an AI conversation",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string" },
+        "userId": { "type": "string" },
+        "vulnContextId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["role", "content", "userId"]
     }
   },
   "auth": {
@@ -63,6 +76,7 @@
   "firestore": {
     "/assets/{assetId}": { "schema": "Asset" },
     "/scans/{scanId}": { "schema": "Scan" },
-    "/vulnerabilities/{vulnId}": { "schema": "Vulnerability" }
+    "/vulnerabilities/{vulnId}": { "schema": "Vulnerability" },
+    "/users/{userId}/chatHistory/{messageId}": { "schema": "ChatMessage" }
   }
 }
