@@ -1,57 +1,63 @@
-# SecureScan Enterprise API Documentation
+# SecureScan Enterprise REST API Documentation
 
-This document outlines the internal and external service interfaces for the SecureScan platform. SecureScan utilizes a hybrid architecture of Next.js Server Actions, Genkit Flows, and Firebase SDKs.
-
-## Base Configuration
+This document specifies the internal and external API interfaces for the SecureScan cybersecurity platform. SecureScan utilizes a hybrid architecture of Next.js Server Actions, Genkit AI Flows, and Firebase SDKs. For integration purposes, the following endpoints represent the logical service layer.
 
 - **API Version**: `v1.0.0`
-- **Environment**: Production
-- **Authentication**: Firebase Identity Platform (JWT)
 - **Base URL**: `https://api.securescan.io/v1`
+- **Auth Scheme**: `Bearer <Firebase_ID_Token>`
+- **Content-Type**: `application/json`
 
 ---
 
-## 1. Authentication & Identity
-All requests (except login/register) require a valid Firebase ID Token in the `Authorization` header.
+## 1. Authentication & Session Management
 
-### `POST /auth/session`
-Synchronizes the current client session with the backend security layer.
-- **Header**: `Authorization: Bearer <ID_TOKEN>`
-- **Response**: `200 OK`
+### `POST /auth/session/sync`
+Synchronizes the local Firebase session with the backend security layer and updates the analyst's heartbeat.
+
+**Request Header**:
+- `Authorization: Bearer <ID_TOKEN>`
+
+**Response**: `200 OK`
 ```json
 {
   "status": "active",
-  "userId": "auth_uid",
+  "analystId": "auth_uid",
   "role": "analyst",
-  "permissions": ["scans:execute", "assets:write"]
+  "clearance": "L4",
+  "mfaState": "verified"
 }
 ```
 
 ---
 
-## 2. Asset Management
-Manage the authorized security perimeter.
+## 2. Asset Perimeter Management
 
 ### `GET /assets`
-Retrieve all authorized assets for the authenticated organization.
-- **Query Params**: `type`, `environment`, `status`
-- **Response**: `200 OK`
+Retrieve the inventory of authorized security targets.
+
+**Query Parameters**:
+- `type`: (Optional) `Website`, `Domain`, `Server`, `IP`
+- `status`: (Optional) `Healthy`, `Vulnerable`, `Scanning`
+
+**Response**: `200 OK`
 ```json
 [
   {
-    "id": "asset_01",
+    "id": "asset_99",
     "name": "Production API",
     "target": "api.company.com",
     "type": "Website",
+    "environment": "Production",
     "status": "Healthy",
-    "environment": "Production"
+    "tags": ["critical", "pci-scope"]
   }
 ]
 ```
 
 ### `POST /assets`
-Register a new authorized asset. Requires ethical consent.
-- **Payload**:
+Register a new authorized asset for auditing.
+
+**Payload**:
 ```json
 {
   "name": "Cloud Node Alpha",
@@ -62,46 +68,60 @@ Register a new authorized asset. Requires ethical consent.
 }
 ```
 
+**Status Codes**:
+- `201 Created`: Asset added successfully.
+- `400 Bad Request`: Validation failure (Zod).
+- `403 Forbidden`: Ethical consent not verified.
+
 ---
 
-## 3. Scan Orchestration
-Control and monitor security auditing engines.
+## 3. Scan Orchestration Engine
 
 ### `POST /scans/start`
-Initiate an automated audit job.
-- **Payload**:
+Initiate an automated audit job using specialized engines (Nuclei, ZAP, etc.).
+
+**Payload**:
 ```json
 {
   "assetId": "asset_id",
-  "type": "nuclei",
-  "intensity": "high"
+  "engine": "nuclei",
+  "intensity": "high",
+  "ethicalConsent": true
 }
 ```
-- **Status Codes**:
-  - `201 Created`: Scan initialized successfully.
-  - `403 Forbidden`: Ethical consent not verified.
-  - `429 Too Many Requests`: Concurrent scan limit reached.
 
-### `GET /scans/{scanId}/telemetry`
-Stream live terminal logs from the execution node.
-- **Response**: Server-Sent Events (SSE) or Poll
+**Response**: `202 Accepted`
 ```json
 {
-  "timestamp": "2024-03-20T10:00:00Z",
-  "level": "INFO",
-  "message": "[Nuclei] Detecting CVE-2021-44228..."
+  "scanId": "job_123",
+  "status": "In Progress",
+  "estimatedCompletion": "120s",
+  "telemetryUrl": "/v1/scans/job_123/telemetry"
 }
+```
+
+### `GET /scans/{id}/telemetry`
+Stream live execution logs from the audit node.
+
+**Response Type**: `text/event-stream` (SSE)
+```text
+data: {"timestamp": "...", "level": "INFO", "message": "[Nuclei] Detecting CVE-2021-44228..."}
+data: {"timestamp": "...", "level": "ALERT", "message": "Log4j RCE Detected."}
 ```
 
 ---
 
 ## 4. Vulnerability Intelligence
-Access and manage technical findings.
 
 ### `GET /vulnerabilities`
-Query the vulnerability database.
-- **Filters**: `severity`, `assetId`, `status`, `cve`
-- **Response**:
+Query the centralized database of technical findings.
+
+**Filters**:
+- `severity`: `Critical`, `High`, `Medium`, `Low`, `Info`
+- `assetId`: Filter by target.
+- `cve`: Search for specific CVE ID.
+
+**Response**: `200 OK`
 ```json
 {
   "findings": [
@@ -111,66 +131,87 @@ Query the vulnerability database.
       "severity": "Critical",
       "cvss": 9.8,
       "cve": "N/A",
-      "assetName": "Main Portal"
+      "assetName": "Main Portal",
+      "status": "Open"
     }
   ],
-  "total": 124
+  "total": 14
 }
 ```
 
-### `PATCH /vulnerabilities/{id}`
-Update the remediation status of a finding.
-- **Payload**: `{ "status": "Resolved", "notes": "Applied patch v2.1" }`
+### `POST /vulnerabilities/{id}/analyze`
+Trigger the Gemini AI Analyst for a remediation deep-dive.
 
----
-
-## 5. AI Security Agent (Genkit)
-Interface with the specialized security LLM flows.
-
-### `POST /ai/analyze`
-Generate a step-by-step remediation plan for a finding.
-- **Flow**: `aiVulnerabilityExplanationAndFix`
-- **Input**: `vulnerabilityDetails`
-- **Output**:
+**Response**: `200 OK`
 ```json
 {
   "explanation": "Markdown text...",
   "suggestedFixes": "Code blocks...",
-  "remediationPlan": ["Step 1", "Step 2"]
+  "remediationPlan": ["Step 1", "Step 2"],
+  "nistMapping": "AC-2"
 }
 ```
 
 ---
 
-## 6. Enterprise Reporting
-Compile and export compliance documentation.
+## 5. Enterprise Reporting
 
 ### `POST /reports/generate`
-Synthesize scan data into an executive-grade audit.
-- **Payload**:
+Synthesize technical findings into an executive-grade audit.
+
+**Payload**:
 ```json
 {
   "title": "Q1 Security Audit",
   "format": "pdf",
   "includeOwasp": true,
-  "includeMitre": true
+  "includeMitre": true,
+  "aiSummary": true
 }
 ```
-- **Response**: `202 Accepted` with `reportId`.
+
+**Response**: `201 Created`
+```json
+{
+  "reportId": "rep_55",
+  "downloadUrl": "https://storage.securescan.io/reports/rep_55.pdf",
+  "riskScore": 88
+}
+```
 
 ---
 
-## 7. Governance & Audit
-Administrative controls for organization-wide security.
+## 6. Real-Time Notifications
 
-### `GET /admin/audit-logs`
-Retrieve the immutable record of platform actions.
-- **Permissions**: `admin` role required.
+### `GET /notifications`
+Retrieve analyst alerts for the current session.
+
+**Response**: `200 OK`
 ```json
 [
   {
-    "timestamp": "...",
-    "user": "analyst@org.com",
+    "id": "notif_01",
+    "title": "Scan Complete",
+    "message": "Nuclei audit finished on Prod-API. 2 Critical findings.",
+    "type": "success",
+    "read": false
+  }
+]
+```
+
+---
+
+## 7. Governance & Administrative APIs
+
+### `GET /admin/audit-logs`
+Retrieve the immutable record of system operations (Admins only).
+
+**Response**: `200 OK`
+```json
+[
+  {
+    "timestamp": "2024-03-20T10:00:00Z",
+    "analyst": "analyst@org.com",
     "action": "SCAN_START",
     "details": "Target: Production-DB",
     "ip": "192.168.1.1"
@@ -178,27 +219,24 @@ Retrieve the immutable record of platform actions.
 ]
 ```
 
-### `PUT /admin/roles/{userId}`
-Update user entitlements.
-- **Payload**: `{ "role": "admin" | "analyst" | "viewer" }`
+### `PATCH /admin/roles/{userId}`
+Update RBAC entitlements for a specific analyst.
+
+**Payload**: `{ "role": "admin" | "analyst" | "viewer" }`
 
 ---
 
-## Error Handling
+## Global Status Codes
 
 | Code | Type | Description |
 |---|---|---|
-| `400` | Invalid Request | Payload validation failed (Zod error). |
+| `200` | OK | Request succeeded. |
+| `201` | Created | Resource successfully initialized. |
+| `202` | Accepted | Batch job (Scan/Report) queued. |
+| `400` | Bad Request | Payload validation failed (Zod error). |
 | `401` | Unauthorized | Bearer token missing or expired. |
-| `403` | Forbidden | Insufficient RBAC privileges for the resource. |
-| `404` | Not Found | Asset, Scan, or Finding ID does not exist. |
-| `500` | Engine Fault | Internal server error or LLM timeout. |
+| `403` | Forbidden | Insufficient RBAC or missing ethical consent. |
+| `404` | Not Found | Resource ID does not exist. |
+| `500` | Internal Error | Engine fault or AI timeout. |
 
----
-
-## Rate Limits
-- **Standard**: 1000 requests / hour / user.
-- **Scans**: 5 concurrent jobs per organization node.
-- **AI**: 50 analysis requests / hour (Tier 1).
-
-© 2024 SecureScan Technologies Corp. All rights reserved.
+© 2024 SecureScan Technologies Corp. Built for Tactical Defense.
