@@ -38,6 +38,16 @@ SecureScan is an elite, full-stack cybersecurity platform designed for high-comp
 
 ---
 
+## 📖 Documentation
+- [**Technical Architecture**](./docs/ARCHITECTURE.md) - System design and data flow.
+- [**Internal API Specs**](./docs/API.md) - REST endpoint documentation.
+- [**Deployment Guide**](./docs/DEPLOYMENT.md) - Productionizing on Firebase & Docker.
+- [**Testing & QA Strategy**](./docs/TESTING.md) - Multi-layered testing approach.
+- [**Portfolio & Showcase**](./docs/PORTFOLIO.md) - Content for Resume, LinkedIn, and Portfolios.
+- [**Software Requirements**](./docs/SRS.md) - Detailed functional specs.
+
+---
+
 ## 🛠 Installation & Setup
 
 ### 1. Configure Environment Variables
@@ -62,15 +72,6 @@ npm run dev
 SecureScan is optimized for **Firebase App Hosting**. 
 
 For detailed production instructions, including Docker and SSL configuration, refer to the [**Deployment Guide**](./docs/DEPLOYMENT.md).
-
----
-
-## 📖 Documentation
-- [**Technical Architecture**](./docs/ARCHITECTURE.md)
-- [**Internal API Specs**](./docs/API.md)
-- [**Deployment Roadmap**](./docs/DEPLOYMENT.md)
-- [**Testing & QA Strategy**](./docs/TESTING.md)
-- [**Software Requirements**](./docs/SRS.md)
 
 ---
 
