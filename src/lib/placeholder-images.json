@@ -1,3 +1,16 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Abstract cybersecurity digital background with neural networks and locks.",
+      "imageUrl": "https://picsum.photos/seed/cyber-hero/1920/1080",
+      "imageHint": "cybersecurity network"
+    },
+    {
+      "id": "feature-dashboard",
+      "description": "Sleek dark mode cybersecurity dashboard interface.",
+      "imageUrl": "https://picsum.photos/seed/sec-dash/800/600",
+      "imageHint": "security dashboard"
+    }
+  ]
 }
