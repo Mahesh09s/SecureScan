@@ -1,0 +1,61 @@
+
+{
+  "entities": {
+    "Asset": {
+      "title": "Asset",
+      "description": "A security target to be scanned",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the asset"
+        },
+        "target": {
+          "type": "string",
+          "description": "URL, Domain, or IP address of the target"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["Website", "Domain", "Server", "IP"],
+          "description": "Type of asset"
+        },
+        "environment": {
+          "type": "string",
+          "description": "The environment (e.g., Production, Staging)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Categorization tags"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Healthy", "Vulnerable", "Scanning"],
+          "description": "Current security status"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the user who owns this asset"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["name", "target", "type", "ownerId"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com", "password"]
+  },
+  "firestore": {
+    "/assets/{assetId}": {
+      "schema": "Asset",
+      "description": "Top-level collection for security assets"
+    }
+  }
+}
