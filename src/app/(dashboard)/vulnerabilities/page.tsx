@@ -15,11 +15,10 @@ import {
   ShieldCheck,
   AlertTriangle,
   Flame,
-  ChevronDown,
-  LayoutGrid,
-  FileText,
   Binary,
-  Code2
+  Code2,
+  FileText,
+  CheckCircle2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -85,12 +84,22 @@ export default function VulnerabilitiesPage() {
     }
   };
 
+  const getSeverityStyles = (sev: string) => {
+    switch (sev) {
+      case 'Critical': return { color: 'text-destructive', border: 'border-destructive', bg: 'bg-destructive/10', icon: Flame };
+      case 'High': return { color: 'text-orange-500', border: 'border-orange-500', bg: 'bg-orange-500/10', icon: AlertTriangle };
+      case 'Medium': return { color: 'text-yellow-500', border: 'border-yellow-500', bg: 'bg-yellow-500/10', icon: AlertTriangle };
+      case 'Low': return { color: 'text-emerald-500', border: 'border-emerald-500', bg: 'bg-emerald-500/10', icon: CheckCircle2 };
+      default: return { color: 'text-muted-foreground', border: 'border-white/10', bg: 'bg-white/5', icon: Info };
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-headline font-bold text-white text-glow">Vulnerability Inventory</h2>
-          <p className="text-muted-foreground">Comprehensive database of findings identified by Nuclei, ZAP, Vuls, and more.</p>
+          <p className="text-muted-foreground">Comprehensive database of technical findings identified across authorized assets.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="border-white/10 rounded-xl gap-2 hover:bg-white/5 text-white">
@@ -111,30 +120,28 @@ export default function VulnerabilitiesPage() {
               <div className="space-y-4">
                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Severity Filter</label>
                 <div className="space-y-2">
-                  {[
-                    { id: 'Critical', color: 'text-destructive', icon: Flame },
-                    { id: 'High', color: 'text-orange-500', icon: AlertTriangle },
-                    { id: 'Medium', color: 'text-yellow-500', icon: AlertTriangle },
-                    { id: 'Low', color: 'text-blue-500', icon: Info },
-                    { id: 'Info', color: 'text-muted-foreground', icon: Info },
-                  ].map(sev => (
-                    <button 
-                      key={sev.id}
-                      onClick={() => toggleSeverity(sev.id)}
-                      className={cn(
-                        "w-full flex items-center justify-between p-3 rounded-xl border transition-all group",
-                        severityFilter.includes(sev.id) 
-                          ? "bg-white/10 border-white/20" 
-                          : "bg-transparent border-transparent hover:bg-white/5"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <sev.icon className={cn("w-4 h-4", sev.color)} />
-                        <span className="text-sm text-white/80 group-hover:text-white">{sev.id}</span>
-                      </div>
-                      {severityFilter.includes(sev.id) && <div className="w-2 h-2 rounded-full bg-primary" />}
-                    </button>
-                  ))}
+                  {['Critical', 'High', 'Medium', 'Low', 'Info'].map(sev => {
+                    const styles = getSeverityStyles(sev);
+                    const Icon = styles.icon;
+                    return (
+                      <button 
+                        key={sev}
+                        onClick={() => toggleSeverity(sev)}
+                        className={cn(
+                          "w-full flex items-center justify-between p-3 rounded-xl border transition-all group",
+                          severityFilter.includes(sev) 
+                            ? "bg-white/10 border-white/20" 
+                            : "bg-transparent border-transparent hover:bg-white/5"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={cn("w-4 h-4", styles.color)} />
+                          <span className="text-sm text-white/80 group-hover:text-white">{sev}</span>
+                        </div>
+                        {severityFilter.includes(sev) && <div className="w-2 h-2 rounded-full bg-primary" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -171,58 +178,65 @@ export default function VulnerabilitiesPage() {
                 <span className="text-white">Decrypting findings...</span>
               </div>
             ) : filteredVulns && filteredVulns.length > 0 ? (
-              filteredVulns.map((v) => (
-                <Card 
-                  key={v.id} 
-                  className="glass-card group hover:border-primary/30 transition-all cursor-pointer overflow-hidden border-l-4"
-                  style={{ borderLeftColor: v.severity === 'Critical' ? 'hsl(var(--destructive))' : v.severity === 'High' ? '#f97316' : v.severity === 'Medium' ? '#eab308' : v.severity === 'Low' ? '#3b82f6' : '#64748b' }}
-                  onClick={() => setSelectedVuln(v)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div className="flex-1 space-y-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors flex items-center gap-3">
-                              {v.title}
-                              {v.cve && <Badge variant="outline" className="text-[10px] font-mono text-primary/80 border-primary/20">{v.cve}</Badge>}
-                            </h3>
-                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                              <span>Asset: {v.assetName || 'Core Infrastructure'}</span>
-                              <span className="opacity-30">•</span>
-                              <span>Source: {v.source || 'Automated Engine'}</span>
-                              {v.cvss > 0 && (
-                                <>
-                                  <span className="opacity-30">•</span>
-                                  <span className={cn(v.cvss >= 7 ? "text-destructive" : "text-yellow-500")}>CVSS: {v.cvss}</span>
-                                </>
-                              )}
+              filteredVulns.map((v) => {
+                const styles = getSeverityStyles(v.severity);
+                return (
+                  <Card 
+                    key={v.id} 
+                    className={cn(
+                      "glass-card group hover:border-primary/30 transition-all cursor-pointer overflow-hidden border-l-4",
+                      v.severity === 'Critical' ? "border-l-destructive" :
+                      v.severity === 'High' ? "border-l-orange-500" :
+                      v.severity === 'Medium' ? "border-l-yellow-500" :
+                      v.severity === 'Low' ? "border-l-emerald-500" : "border-l-muted"
+                    )}
+                    onClick={() => setSelectedVuln(v)}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <div className="flex-1 space-y-4">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                              <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors flex items-center gap-3">
+                                {v.title}
+                                {v.cve && <Badge variant="outline" className="text-[10px] font-mono text-primary/80 border-primary/20">{v.cve}</Badge>}
+                              </h3>
+                              <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                                <span>Asset: {v.assetName || 'Core Infrastructure'}</span>
+                                <span className="opacity-30">•</span>
+                                <span>Source: {v.source || 'Automated Engine'}</span>
+                                {v.cvss > 0 && (
+                                  <>
+                                    <span className="opacity-30">•</span>
+                                    <span className={cn(v.cvss >= 7 ? "text-destructive" : "text-yellow-500")}>CVSS: {v.cvss}</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
+                            <Badge 
+                              className={cn(
+                                "px-4 py-1 text-[10px] font-bold uppercase tracking-widest border-none",
+                                styles.bg, styles.color
+                              )}
+                            >
+                              {v.severity}
+                            </Badge>
                           </div>
-                          <Badge 
-                            variant={v.severity === 'Critical' || v.severity === 'High' ? 'destructive' : 'secondary'}
-                            className={cn(
-                              "px-4 py-1 text-[10px] font-bold uppercase tracking-widest",
-                              v.severity === 'Info' && "bg-slate-500/10 text-slate-400 border-slate-500/20"
-                            )}
-                          >
-                            {v.severity}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
-                          {v.description}
-                        </p>
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="text-[10px] text-muted-foreground italic font-medium">
-                            First identified: {v.createdAt?.toDate().toLocaleDateString()}
+                          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity">
+                            {v.description}
+                          </p>
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="text-[10px] text-muted-foreground italic font-medium">
+                              First identified: {v.createdAt?.toDate().toLocaleDateString()}
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transform transition-all group-hover:translate-x-1" />
                           </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transform transition-all group-hover:translate-x-1" />
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </CardContent>
+                  </Card>
+                );
+              })
             ) : (
               <div className="p-20 text-center flex flex-col items-center gap-4 opacity-30">
                 <AlertOctagon className="w-12 h-12" />
@@ -243,8 +257,11 @@ export default function VulnerabilitiesPage() {
               <DialogHeader className="space-y-4">
                 <div className="flex justify-between items-start pr-8">
                   <Badge 
-                    variant={selectedVuln.severity === 'Critical' || selectedVuln.severity === 'High' ? 'destructive' : 'secondary'}
-                    className={cn(selectedVuln.severity === 'Info' && "bg-slate-500/10 text-slate-400")}
+                    className={cn(
+                      "border-none",
+                      getSeverityStyles(selectedVuln.severity).bg,
+                      getSeverityStyles(selectedVuln.severity).color
+                    )}
                   >
                     {selectedVuln.severity} Risk
                   </Badge>

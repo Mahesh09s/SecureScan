@@ -40,3 +40,14 @@ export const calculateRiskScore = (vulnerabilities: any[]): number => {
   const penalty = vulnerabilities.reduce((acc, v) => acc + (weights[v.severity as keyof typeof weights] || 0), 0);
   return Math.max(0, 100 - penalty);
 };
+
+export const getSeverityColor = (severity: string) => {
+  switch (severity) {
+    case 'Critical': return '#ef4444'; // Red
+    case 'High': return '#f97316'; // Orange
+    case 'Medium': return '#eab308'; // Yellow
+    case 'Low': return '#10b981'; // Emerald
+    case 'Info': return '#64748b'; // Slate
+    default: return '#64748b';
+  }
+};

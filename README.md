@@ -1,44 +1,29 @@
-# SecureScan – Enterprise Cyber Security Platform
+# SecureScan – AI-Powered Vulnerability Assessment & Security Dashboard
 
-SecureScan is a premium vulnerability management and security assessment dashboard built for modern engineering teams. It integrates automated asset discovery, real-time scanning, and AI-powered remediation.
+SecureScan is an elite, full-stack cybersecurity platform designed for authorized security assessments. Built for modern engineering teams and security analysts, it provides a centralized command center for asset discovery, deep-telemetry auditing, and AI-powered remediation.
 
-## 🚀 Production Quick Start
+## 🚀 Key Features
 
-### 1. Environment Configuration
-Create a `.env.local` file with the following variables:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-GEMINI_API_KEY=your_google_ai_key
-```
+- **Strategic Asset Management**: Authorized inventory tracking for Websites, Domains, IPs, and Servers.
+- **Multi-Engine Auditing**: Orchestrate industry-standard tools including Nuclei, OWASP ZAP, Vuls, and Nmap.
+- **AI Security Operations**: Gemini-integrated assistant for technical CVE deep dives, threat hunting queries, and remediation plans.
+- **Governance & Compliance**: Automatic mapping of findings to OWASP Top 10, MITRE ATT&CK, and NIST CSF.
+- **Enterprise Dashboarding**: High-fidelity security scores (A-F grading), risk heatmaps, and global monitoring.
+- **Professional Reporting**: AI-synthesized audit documentation in PDF, JSON, and CSV formats.
 
-### 2. Deployment
-This project is optimized for deployment on **Firebase App Hosting**.
-- Connect your GitHub repository to the Firebase Console.
-- Configure `apphosting.yaml` for SSR support.
-- Set environment variables in the App Hosting dashboard.
+## 🏗 Technology Stack
 
-## 🏗 Architecture
-- **Framework**: Next.js 15 (App Router)
-- **Database**: Cloud Firestore (Real-time synchronization)
-- **Auth**: Firebase Authentication (MFA Ready)
-- **AI**: Google Genkit (Gemini 2.5 Flash)
-- **Styling**: Tailwind CSS + ShadCN UI (Glassmorphic Cyber Theme)
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS, Framer Motion.
+- **Backend**: Firebase (Firestore, Auth, Storage) & Genkit (AI Orchestration).
+- **AI Engine**: Google Gemini 2.5 Flash.
+- **Design System**: ShadCN UI with a custom "Cyber-Deep" glassmorphic theme.
 
 ## 🛡 Security Posture
-- **CSRF/XSS**: Handled natively by Next.js.
-- **RBAC**: Enforced via Firestore Security Rules and Next.js middleware patterns.
-- **Audit Logging**: Every sensitive action is logged to the `auditLogs` collection.
-- **Contextual Errors**: Production builds surface technical security rule violations via the `FirebaseErrorListener`.
 
-## 📈 Performance
-- **Lighthouse**: Target score 95+ across all metrics.
-- **Image Optimization**: Uses `next/image` with standardized placeholder seeds.
-- **Code Splitting**: Native Next.js route-level splitting.
+- **Role-Based Access Control (RBAC)**: Granular permissions for Analysts, Auditors, and Admins.
+- **Immutable Audit Logging**: Every system action is cryptographically tracked for compliance.
+- **Session Governance**: Real-time device monitoring and access revocation.
+- **Ethical Safeguards**: Mandatory authorization verification for all active scanning operations.
 
 ---
-© 2024 SecureScan Technologies Inc.
+© 2024 SecureScan Technologies Corp. Built for Defensive Security.
