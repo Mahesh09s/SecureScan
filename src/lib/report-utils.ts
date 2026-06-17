@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Utility functions for report data mapping and transformation.
  */
@@ -31,7 +30,13 @@ export const mapToMitre = (title: string, description: string): string => {
 
 export const calculateRiskScore = (vulnerabilities: any[]): number => {
   if (vulnerabilities.length === 0) return 100;
-  const weights = { Critical: 10, High: 5, Medium: 2, Low: 1, Info: 0 };
+  const weights = { 
+    Critical: 15, 
+    High: 8, 
+    Medium: 4, 
+    Low: 1, 
+    Info: 0 
+  };
   const penalty = vulnerabilities.reduce((acc, v) => acc + (weights[v.severity as keyof typeof weights] || 0), 0);
   return Math.max(0, 100 - penalty);
 };

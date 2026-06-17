@@ -90,12 +90,12 @@ export default function VulnerabilitiesPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-3xl font-headline font-bold text-white text-glow">Vulnerability Inventory</h2>
-          <p className="text-muted-foreground">Comprehensive database of all detected security findings and exposures.</p>
+          <p className="text-muted-foreground">Comprehensive database of findings identified by Nuclei, ZAP, Vuls, and more.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="border-white/10 rounded-xl gap-2 hover:bg-white/5 text-white">
             <Download className="w-4 h-4" />
-            Export Audit CSV
+            Audit Export
           </Button>
           <Button className="cyber-gradient border-none shadow-lg rounded-xl gap-2">
             <ShieldAlert className="w-4 h-4" />
@@ -116,6 +116,7 @@ export default function VulnerabilitiesPage() {
                     { id: 'High', color: 'text-orange-500', icon: AlertTriangle },
                     { id: 'Medium', color: 'text-yellow-500', icon: AlertTriangle },
                     { id: 'Low', color: 'text-blue-500', icon: Info },
+                    { id: 'Info', color: 'text-muted-foreground', icon: Info },
                   ].map(sev => (
                     <button 
                       key={sev.id}
@@ -138,14 +139,14 @@ export default function VulnerabilitiesPage() {
               </div>
 
               <div className="pt-4 border-t border-white/5 space-y-4">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Analyst Tools</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Intelligence Tools</label>
                 <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl text-xs hover:bg-white/5 text-white">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  Show Resolved Findings
+                  Resolved Database
                 </Button>
                 <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl text-xs hover:bg-white/5 text-white">
                   <Binary className="w-4 h-4 text-primary" />
-                  CVE Deep Dive
+                  CVE Correlation
                 </Button>
               </div>
             </CardContent>
@@ -159,7 +160,7 @@ export default function VulnerabilitiesPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary/50 text-white text-lg placeholder:text-muted-foreground/30" 
-              placeholder="Search by title, asset name, or CVE..." 
+              placeholder="Search CVE, asset, or finding title..." 
             />
           </div>
 
@@ -167,14 +168,14 @@ export default function VulnerabilitiesPage() {
             {loading ? (
               <div className="p-20 text-center text-muted-foreground flex flex-col items-center gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="text-white">Synchronizing findings intelligence...</span>
+                <span className="text-white">Decrypting findings...</span>
               </div>
             ) : filteredVulns && filteredVulns.length > 0 ? (
               filteredVulns.map((v) => (
                 <Card 
                   key={v.id} 
                   className="glass-card group hover:border-primary/30 transition-all cursor-pointer overflow-hidden border-l-4"
-                  style={{ borderLeftColor: v.severity === 'Critical' ? 'hsl(var(--destructive))' : v.severity === 'High' ? '#f97316' : v.severity === 'Medium' ? '#eab308' : '#3b82f6' }}
+                  style={{ borderLeftColor: v.severity === 'Critical' ? 'hsl(var(--destructive))' : v.severity === 'High' ? '#f97316' : v.severity === 'Medium' ? '#eab308' : v.severity === 'Low' ? '#3b82f6' : '#64748b' }}
                   onClick={() => setSelectedVuln(v)}
                 >
                   <CardContent className="p-6">
@@ -189,8 +190,8 @@ export default function VulnerabilitiesPage() {
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
                               <span>Asset: {v.assetName || 'Core Infrastructure'}</span>
                               <span className="opacity-30">•</span>
-                              <span>Detected: {v.createdAt?.toDate().toLocaleDateString() || 'Recently'}</span>
-                              {v.cvss && (
+                              <span>Source: {v.source || 'Automated Engine'}</span>
+                              {v.cvss > 0 && (
                                 <>
                                   <span className="opacity-30">•</span>
                                   <span className={cn(v.cvss >= 7 ? "text-destructive" : "text-yellow-500")}>CVSS: {v.cvss}</span>
@@ -200,7 +201,10 @@ export default function VulnerabilitiesPage() {
                           </div>
                           <Badge 
                             variant={v.severity === 'Critical' || v.severity === 'High' ? 'destructive' : 'secondary'}
-                            className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest"
+                            className={cn(
+                              "px-4 py-1 text-[10px] font-bold uppercase tracking-widest",
+                              v.severity === 'Info' && "bg-slate-500/10 text-slate-400 border-slate-500/20"
+                            )}
                           >
                             {v.severity}
                           </Badge>
@@ -209,10 +213,8 @@ export default function VulnerabilitiesPage() {
                           {v.description}
                         </p>
                         <div className="flex items-center justify-between pt-2">
-                          <div className="flex gap-4">
-                            <div className="text-[10px] text-muted-foreground">
-                              Technique: <span className="text-white/60">{v.source || 'ZAP Engine'}</span>
-                            </div>
+                          <div className="text-[10px] text-muted-foreground italic font-medium">
+                            First identified: {v.createdAt?.toDate().toLocaleDateString()}
                           </div>
                           <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transform transition-all group-hover:translate-x-1" />
                         </div>
@@ -222,11 +224,11 @@ export default function VulnerabilitiesPage() {
                 </Card>
               ))
             ) : (
-              <div className="p-20 text-center flex flex-col items-center gap-4">
-                <AlertOctagon className="w-12 h-12 text-muted-foreground opacity-20" />
+              <div className="p-20 text-center flex flex-col items-center gap-4 opacity-30">
+                <AlertOctagon className="w-12 h-12" />
                 <div className="space-y-1">
-                  <p className="text-white font-bold">No findings detected</p>
-                  <p className="text-sm text-muted-foreground">The security perimeter appears clean. Initiate a new scan to verify integrity.</p>
+                  <p className="text-white font-bold">No active findings</p>
+                  <p className="text-sm">Initiate an audit job to verify security posture.</p>
                 </div>
               </div>
             )}
@@ -242,13 +244,13 @@ export default function VulnerabilitiesPage() {
                 <div className="flex justify-between items-start pr-8">
                   <Badge 
                     variant={selectedVuln.severity === 'Critical' || selectedVuln.severity === 'High' ? 'destructive' : 'secondary'}
-                    className="mb-2"
+                    className={cn(selectedVuln.severity === 'Info' && "bg-slate-500/10 text-slate-400")}
                   >
                     {selectedVuln.severity} Risk
                   </Badge>
-                  {selectedVuln.cvss && (
+                  {selectedVuln.cvss > 0 && (
                     <div className="text-right">
-                      <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">CVSS Impact</div>
+                      <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Impact Score</div>
                       <div className="text-2xl font-headline font-bold text-primary">{selectedVuln.cvss}</div>
                     </div>
                   )}
@@ -256,7 +258,7 @@ export default function VulnerabilitiesPage() {
                 <DialogTitle className="text-2xl font-bold leading-tight">{selectedVuln.title}</DialogTitle>
                 <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pb-4 border-b border-white/5">
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4" />
+                    <ShieldCheck className="w-4 h-4 text-primary" />
                     Asset: {selectedVuln.assetName}
                   </div>
                   {selectedVuln.cve && (
@@ -268,7 +270,7 @@ export default function VulnerabilitiesPage() {
               <div className="space-y-6 pt-4">
                 <div className="space-y-2">
                   <h4 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Technical Description
+                    <FileText className="w-4 h-4" /> Technical Analysis
                   </h4>
                   <p className="text-sm leading-relaxed text-muted-foreground">{selectedVuln.description}</p>
                 </div>
@@ -282,7 +284,7 @@ export default function VulnerabilitiesPage() {
 
                 <div className="space-y-2">
                   <h4 className="text-sm font-bold text-emerald-500 uppercase tracking-wider flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4" /> Remediation Recommendation
+                    <ShieldCheck className="w-4 h-4" /> Recommended Fix
                   </h4>
                   <p className="text-sm leading-relaxed text-muted-foreground">{selectedVuln.recommendation}</p>
                 </div>
@@ -291,9 +293,9 @@ export default function VulnerabilitiesPage() {
                   <div className="space-y-2">
                     <h4 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                       <Binary className="w-4 h-4" /> Telemetry Evidence
-                      <Badge variant="outline" className="text-[9px] py-0 ml-auto">Live Output</Badge>
+                      <Badge variant="outline" className="text-[9px] py-0 ml-auto border-white/10 opacity-50">Live Capture</Badge>
                     </h4>
-                    <pre className="bg-black/40 p-4 rounded-xl text-[10px] font-code overflow-x-auto border border-white/5 text-emerald-400/80">
+                    <pre className="bg-black/40 p-4 rounded-xl text-[10px] font-code overflow-x-auto border border-white/5 text-emerald-400/80 scrollbar-hide">
                       {selectedVuln.evidence}
                     </pre>
                   </div>
@@ -304,7 +306,7 @@ export default function VulnerabilitiesPage() {
                     className="flex-1 cyber-gradient h-11 text-white font-bold"
                     onClick={() => updateVulnStatus(selectedVuln.id, 'Resolved')}
                   >
-                    Eradicate Finding
+                    Mark as Remediated
                   </Button>
                   <Button 
                     variant="outline" 
@@ -314,7 +316,7 @@ export default function VulnerabilitiesPage() {
                     }}
                   >
                     <Code2 className="w-4 h-4 mr-2" />
-                    AI Code Fix
+                    AI Remediation
                   </Button>
                 </div>
               </div>
