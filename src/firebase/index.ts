@@ -1,16 +1,20 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
 import { auth, db } from './config';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { 
-  collection, 
   onSnapshot, 
   Query, 
   DocumentData, 
   QuerySnapshot 
 } from 'firebase/firestore';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
+
+/**
+ * @fileOverview Core Firebase hooks optimized for production with contextual error handling.
+ */
 
 export const useAuth = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -51,9 +55,15 @@ export function useCollection<T = DocumentData>(query: Query | null) {
         setData(items);
         setLoading(false);
       },
-      (err) => {
-        console.error(err);
-        setError(err);
+      async (serverError) => {
+        // Construct rich contextual error for security rule failures
+        const permissionError = new FirestorePermissionError({
+          path: (query as any)._query?.path?.toString() || 'unknown/collection',
+          operation: 'list',
+        });
+
+        errorEmitter.emit('permission-error', permissionError);
+        setError(permissionError);
         setLoading(false);
       }
     );
