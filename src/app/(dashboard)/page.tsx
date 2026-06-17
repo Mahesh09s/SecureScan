@@ -1,57 +1,55 @@
-
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { SecurityGauge } from '@/components/dashboard/SecurityGauge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { 
   BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  AreaChart,
-  Area,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  LineChart,
+  Line
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { 
-  AlertCircle, 
-  Clock, 
-  ShieldCheck, 
-  Zap, 
-  Lock, 
   ShieldAlert, 
   Globe, 
   Activity, 
   TrendingUp,
   Flame,
+  Zap,
+  Clock,
+  CheckCircle2,
+  Lock,
   Target,
   FileSearch,
-  CheckCircle2,
-  AlertTriangle
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useAuth, useCollection } from '@/firebase';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 
-const scanHistory = [
-  { name: 'Jan', scans: 45, risks: 12 },
-  { name: 'Feb', scans: 52, risks: 18 },
-  { name: 'Mar', scans: 48, risks: 15 },
-  { name: 'Apr', scans: 61, risks: 10 },
-  { name: 'May', scans: 55, risks: 8 },
-  { name: 'Jun', scans: 67, risks: 21 },
+const trendData = [
+  { name: 'Mon', risk: 45, score: 88 },
+  { name: 'Tue', risk: 52, score: 85 },
+  { name: 'Wed', risk: 38, score: 90 },
+  { name: 'Thu', risk: 42, score: 87 },
+  { name: 'Fri', risk: 30, score: 92 },
+  { name: 'Sat', risk: 25, score: 95 },
+  { name: 'Sun', risk: 28, score: 94 },
 ];
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#3b82f6'];
 
-export default function Dashboard() {
+export default function ExecutiveDashboard() {
   const firestore = useFirestore();
   const { currentUser } = useAuth();
 
@@ -72,7 +70,7 @@ export default function Dashboard() {
 
   const auditQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
-    return query(collection(firestore, 'auditLogs'), where('userId', '==', currentUser.uid), orderBy('timestamp', 'desc'), limit(6));
+    return query(collection(firestore, 'auditLogs'), where('userId', '==', currentUser.uid), orderBy('timestamp', 'desc'), limit(5));
   }, [firestore, currentUser]);
 
   const { data: vulnerabilities } = useCollection<any>(vulnsQuery);
@@ -85,7 +83,7 @@ export default function Dashboard() {
     const highs = vulnerabilities?.filter(v => v.severity === 'High').length || 0;
     const baseScore = 100;
     const reduction = (criticals * 15) + (highs * 7);
-    return Math.max(0, baseScore - reduction);
+    return Math.max(10, baseScore - reduction);
   }, [vulnerabilities]);
 
   const severityData = useMemo(() => {
@@ -104,267 +102,199 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto pb-20">
-      {/* Header Section */}
+      {/* Executive Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="space-y-1">
           <h2 className="text-4xl font-headline font-bold text-white tracking-tight flex items-center gap-3">
-            Security Command Center
-            <Badge className="bg-primary/20 text-primary border-primary/30 uppercase text-[10px] py-1">Enterprise Active</Badge>
+            <LayoutDashboard className="w-8 h-8 text-primary" />
+            Executive Command
           </h2>
-          <p className="text-muted-foreground">Global threat posture and asset health monitoring.</p>
+          <p className="text-muted-foreground">Strategic overview of organizational risk and compliance posture.</p>
         </div>
         
-        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 glass">
-          <div className="text-right">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Global Security Score</p>
-            <p className={cn(
-              "text-3xl font-headline font-bold",
-              securityScore > 80 ? "text-emerald-500" : securityScore > 50 ? "text-yellow-500" : "text-destructive"
-            )}>
-              {securityScore}<span className="text-sm text-muted-foreground/50">/100</span>
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-            <TrendingUp className={cn("w-6 h-6", securityScore > 80 ? "text-emerald-500" : "text-yellow-500")} />
+        <div className="flex items-center gap-4">
+          <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/10 glass flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Scan Queue</p>
+              <p className="text-sm font-bold text-white">{recentScans?.filter(s => s.status === 'In Progress').length || 0} Engines</p>
+            </div>
+            <div className="w-1.5 h-8 bg-primary/20 rounded-full overflow-hidden">
+              <motion.div animate={{ height: [0, 32, 0] }} transition={{ duration: 2, repeat: Infinity }} className="w-full bg-primary" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Primary Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        <StatCard label="Total Assets" value={assets?.length.toString() || "0"} trend="+2" icon="ShieldCheck" />
-        <StatCard label="Critical Issues" value={vulnerabilities?.filter(v => v.severity === 'Critical').length.toString() || "0"} trend="Action Required" icon="Flame" color="text-destructive" />
-        <StatCard label="Total Scans" value="1.2k" trend="+12%" icon="Activity" />
-        <StatCard label="Uptime" value="99.9%" trend="Stable" icon="BarChart" />
-        <StatCard label="MTTR" value="4.2d" trend="-1.5d" icon="Activity" color="text-emerald-500" />
-      </div>
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* World Map & Asset Distribution */}
-        <Card className="xl:col-span-2 glass-card overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between bg-white/5 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg font-headline font-bold">Global Asset Perimeter</CardTitle>
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Security Score Gauge */}
+        <Card className="glass-card flex flex-col items-center justify-center p-8 space-y-6">
+          <SecurityGauge score={securityScore} />
+          <div className="text-center space-y-1">
+            <h4 className="text-lg font-bold text-white">Security Rating</h4>
+            <p className="text-xs text-muted-foreground">Based on {vulnerabilities?.length || 0} active findings</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 w-full">
+            <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+              <p className="text-[9px] text-muted-foreground uppercase font-bold">Risk Score</p>
+              <p className="text-xl font-headline font-bold text-white">{100 - securityScore}</p>
             </div>
-            <div className="flex gap-2">
-              <Badge variant="outline" className="text-[9px] uppercase tracking-widest">Live Heatmap</Badge>
+            <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+              <p className="text-[9px] text-muted-foreground uppercase font-bold">MTTR</p>
+              <p className="text-xl font-headline font-bold text-emerald-500">4.2d</p>
             </div>
-          </CardHeader>
-          <CardContent className="p-0 relative h-[400px] flex items-center justify-center bg-black/20">
-            <svg viewBox="0 0 1000 500" className="w-full h-full opacity-20 pointer-events-none absolute">
-              <path d="M150,200 Q200,150 250,200 T350,200 T450,200 T550,200 T650,200 T750,200 T850,200" stroke="white" fill="none" />
-              {/* Simulated continents/nodes */}
-              <circle cx="200" cy="180" r="40" fill="currentColor" className="text-white/20" />
-              <circle cx="500" cy="250" r="60" fill="currentColor" className="text-white/20" />
-              <circle cx="800" cy="200" r="30" fill="currentColor" className="text-white/20" />
-            </svg>
-            <div className="z-10 text-center space-y-4 px-10">
-              <div className="grid grid-cols-3 gap-12">
-                <div className="space-y-1">
-                  <p className="text-3xl font-headline font-bold text-white">42</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold">North America</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl font-headline font-bold text-white">18</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Europe</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl font-headline font-bold text-white">12</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold">APAC</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">Asset clusters identified across multiple geo-redundant nodes. All endpoints are currently responding within latency thresholds.</p>
-            </div>
-          </CardContent>
+          </div>
         </Card>
 
-        {/* Risk Breakdown */}
-        <Card className="glass-card flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg font-headline flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-destructive" />
-              Severity Matrix
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col justify-center gap-8">
+        {/* Strategic Metrics */}
+        <div className="xl:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StatCard label="Total Perimeter" value={assets?.length.toString() || "0"} trend="+2" icon="ShieldCheck" />
+          <StatCard label="Critical Risk" value={vulnerabilities?.filter(v => v.severity === 'Critical').length.toString() || "0"} trend="Active" icon="Flame" color="text-destructive" />
+          <StatCard label="Scan Velocity" value="1.2k" trend="+12%" icon="Activity" />
+          
+          <Card className="md:col-span-2 lg:col-span-3 glass-card p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Risk Exposure Trend (7 Days)
+              </h4>
+              <Badge variant="outline" className="text-[10px]">LIVE DATA</Badge>
+            </div>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={severityData.length > 0 ? severityData : [{ name: 'None', value: 1 }]}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {severityData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                    {severityData.length === 0 && <Cell fill="rgba(255,255,255,0.05)" />}
-                  </Pie>
+                <AreaChart data={trendData}>
+                  <defs>
+                    <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }}
-                    itemStyle={{ color: 'white', fontSize: '12px' }}
+                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                    itemStyle={{ color: 'white' }}
                   />
-                </PieChart>
+                  <Area type="monotone" dataKey="risk" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorRisk)" />
+                  <Area type="monotone" dataKey="score" stroke="#10b981" fillOpacity={0} />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {['Critical', 'High', 'Medium', 'Low'].map((sev, i) => (
-                <div key={sev} className="flex items-center gap-2 p-2 rounded-xl bg-white/5 border border-white/5">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }}></div>
-                  <span className="text-[10px] font-bold text-white/70 uppercase">{sev}</span>
-                  <span className="ml-auto text-xs font-bold">{vulnerabilities?.filter(v => v.severity === sev).length || 0}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Compliance Roadmap */}
+        {/* Compliance Posture */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-lg font-headline flex items-center gap-2">
               <Lock className="w-5 h-5 text-primary" />
-              Compliance Roadmap
+              Compliance Roadmaps
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {[
-              { name: 'SOC 2 Type II', status: 'Compliant', progress: 100, color: 'text-emerald-500' },
-              { name: 'ISO 27001', status: 'Audit Ready', progress: 85, color: 'text-primary' },
-              { name: 'GDPR Article 32', status: 'Remediation', progress: 45, color: 'text-yellow-500' },
-              { name: 'PCI-DSS v4.0', status: 'Scanning', progress: 70, color: 'text-primary' },
+              { name: 'SOC 2 Type II', status: 'Audit Ready', progress: 95, color: 'text-emerald-500' },
+              { name: 'NIST CSF v2.0', status: 'Remediation', progress: 68, color: 'text-primary' },
+              { name: 'ISO 27001:2022', status: 'Gap Analysis', progress: 45, color: 'text-yellow-500' },
+              { name: 'GDPR / HIPAA', status: 'Compliant', progress: 100, color: 'text-emerald-500' },
             ].map((item) => (
               <div key={item.name} className="space-y-2">
                 <div className="flex justify-between items-end">
-                  <div>
+                  <div className="space-y-0.5">
                     <p className="text-xs font-bold text-white">{item.name}</p>
                     <p className={cn("text-[9px] uppercase font-bold", item.color)}>{item.status}</p>
                   </div>
                   <span className="text-xs font-bold text-muted-foreground">{item.progress}%</span>
                 </div>
                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${item.progress}%` }}
-                    className={cn(
-                      "h-full rounded-full",
-                      item.progress === 100 ? "bg-emerald-500" : "bg-primary"
-                    )}
-                  ></motion.div>
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${item.progress}%` }} className={cn("h-full rounded-full", item.progress === 100 ? "bg-emerald-500" : "bg-primary")} />
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        {/* Framework Summaries */}
-        <Card className="glass-card">
-          <CardHeader>
+        {/* Global Distribution */}
+        <Card className="glass-card xl:col-span-2 overflow-hidden relative">
+          <CardHeader className="relative z-10 bg-white/5 border-b border-white/5">
             <CardTitle className="text-lg font-headline flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              Framework Mapping
+              <Globe className="w-5 h-5 text-primary" />
+              Asset Health Distribution
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-3">
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-white">MITRE ATT&CK® Coverage</p>
-                <Badge variant="outline" className="text-[8px]">T1059 / T1190</Badge>
-              </div>
-              <div className="flex gap-1 h-2">
-                {[1, 1, 1, 1, 0, 0, 0, 0, 0, 0].map((v, i) => (
-                  <div key={i} className={cn("flex-1 rounded-full", v ? "bg-primary" : "bg-white/10")}></div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground">Detection coverage for initial access and execution tactics is at 40%.</p>
-            </div>
-            
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-3">
-              <div className="flex justify-between items-center">
-                <p className="text-xs font-bold text-white">OWASP Top 10 (2021)</p>
-                <Badge variant="outline" className="text-[8px]">A01 / A05</Badge>
-              </div>
-              <div className="flex gap-1 h-2">
-                {[1, 1, 1, 1, 1, 1, 0, 0, 0, 0].map((v, i) => (
-                  <div key={i} className={cn("flex-1 rounded-full", v ? "bg-emerald-500" : "bg-white/10")}></div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground">60% of common web vulnerabilities have been actively mitigated.</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Live Scan Queue */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-lg font-headline flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              Live Scan Queue
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-white/5">
-              {recentScans?.map((scan: any) => (
-                <div key={scan.id} className="p-4 flex items-center gap-4 hover:bg-white/5 transition-colors group">
-                  <div className={cn(
-                    "w-1.5 h-1.5 rounded-full shrink-0",
-                    scan.status === 'In Progress' ? "bg-primary animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "bg-emerald-500"
-                  )}></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{scan.target}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase">{scan.type}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-white">{scan.progress}%</p>
-                    <p className="text-[9px] text-muted-foreground">{scan.status}</p>
-                  </div>
+          <CardContent className="p-0 flex items-center justify-center h-[350px] relative bg-black/40">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 z-10 text-center w-full px-8">
+              <div className="space-y-2">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                 </div>
-              ))}
-              {(!recentScans || recentScans.length === 0) && (
-                <div className="p-10 text-center text-muted-foreground text-xs italic">No scans currently in queue.</div>
-              )}
+                <p className="text-2xl font-bold text-white">{assets?.filter(a => a.status === 'Healthy').length || 0}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Healthy</p>
+              </div>
+              <div className="space-y-2">
+                <div className="w-16 h-16 rounded-2xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center mx-auto">
+                  <ShieldAlert className="w-8 h-8 text-yellow-500" />
+                </div>
+                <p className="text-2xl font-bold text-white">{assets?.filter(a => a.status === 'Vulnerable').length || 0}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Vulnerable</p>
+              </div>
+              <div className="space-y-2">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+                  <Zap className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-2xl font-bold text-white">{assets?.filter(a => a.status === 'Scanning').length || 0}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Scanning</p>
+              </div>
+              <div className="space-y-2">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
+                  <Activity className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-2xl font-bold text-white">4</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold">Offline</p>
+              </div>
             </div>
+            {/* Background SVG Grid */}
+            <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" viewBox="0 0 100 100">
+              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
+              </pattern>
+              <rect width="100" height="100" fill="url(#grid)" />
+            </svg>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Security Timeline */}
+        {/* Live Attack Feed */}
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-headline flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
-              Event Timeline
+              Audit Action Stream
             </CardTitle>
-            <Badge variant="outline" className="text-[10px] font-bold">Audit Stream</Badge>
+            <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-widest">Live</Badge>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentActivity?.map((log: any) => (
-                <div key={log.id} className="flex gap-4 relative group">
-                  <div className="absolute left-[15px] top-8 bottom-0 w-px bg-white/5 group-last:hidden"></div>
-                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-primary/50 transition-colors z-10">
-                    {log.action.includes('LOGIN') ? <CheckCircle2 className="w-3 h-3 text-emerald-500" /> : <ShieldAlert className="w-3 h-3 text-primary" />}
-                  </div>
-                  <div className="flex-1 pb-4 border-b border-white/5 group-last:border-none">
-                    <div className="flex justify-between">
-                      <p className="text-xs font-bold text-white">{log.action}</p>
-                      <p className="text-[10px] text-muted-foreground">{log.timestamp?.toDate().toLocaleTimeString()}</p>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground line-clamp-1">{log.details}</p>
-                  </div>
+          <CardContent className="space-y-4">
+            {recentActivity?.map((log: any) => (
+              <div key={log.id} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                  <Activity className="w-5 h-5" />
                 </div>
-              ))}
-            </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between">
+                    <p className="text-xs font-bold text-white uppercase tracking-tight">{log.action}</p>
+                    <p className="text-[10px] text-muted-foreground">{log.timestamp?.toDate().toLocaleTimeString()}</p>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground truncate">{log.details}</p>
+                </div>
+              </div>
+            ))}
+            {(!recentActivity || recentActivity.length === 0) && (
+              <div className="py-20 text-center opacity-20 italic text-sm">Waiting for system events...</div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Top Vulnerabilities / CVEs */}
+        {/* High Risk CVE Target List */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-lg font-headline flex items-center gap-2">
@@ -374,34 +304,40 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             {vulnerabilities?.filter(v => v.severity === 'Critical' || v.severity === 'High').slice(0, 4).map((v: any) => (
-              <div key={v.id} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-destructive/30 transition-all cursor-pointer group" onClick={() => window.location.href = `/vulnerabilities`}>
+              <div key={v.id} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-destructive/30 transition-all cursor-pointer group" onClick={() => window.location.href='/vulnerabilities'}>
                 <div className={cn(
                   "p-3 rounded-xl flex items-center justify-center",
                   v.severity === 'Critical' ? "bg-destructive/10 text-destructive" : "bg-orange-500/10 text-orange-500"
                 )}>
-                  <AlertTriangle className="w-5 h-5" />
+                  <ShieldAlert className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-white truncate group-hover:text-destructive transition-colors">{v.title}</p>
-                    {v.cve && <Badge variant="secondary" className="text-[8px] bg-white/10">{v.cve}</Badge>}
+                    {v.cve && <Badge variant="secondary" className="text-[8px] bg-white/10 uppercase">{v.cve}</Badge>}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">Asset: {v.assetName} • Found: {v.createdAt?.toDate().toLocaleDateString()}</p>
+                  <p className="text-[10px] text-muted-foreground">Asset: {v.assetName} • CVSS: {v.cvss || 'N/A'}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold text-white">CVSS {v.cvss || "N/A"}</p>
-                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white" />
               </div>
             ))}
             {(!vulnerabilities || vulnerabilities.filter(v => v.severity === 'Critical' || v.severity === 'High').length === 0) && (
-              <div className="p-10 text-center flex flex-col items-center gap-4 opacity-50">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                <p className="text-sm">No high risk vulnerabilities currently detected.</p>
+              <div className="p-20 text-center flex flex-col items-center gap-4 opacity-30">
+                <CheckCircle2 className="w-12 h-12 text-emerald-500" />
+                <p className="text-sm">No high risk issues detected.</p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
     </div>
+  );
+}
+
+function ChevronRight({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="m9 18 6-6-6-6"/>
+    </svg>
   );
 }

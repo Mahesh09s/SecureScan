@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -6,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Shield, 
-  Search, 
   AlertOctagon, 
   FileText, 
   Settings, 
@@ -14,24 +12,28 @@ import {
   Bot,
   Zap,
   LogOut,
-  ChevronRight,
   ShieldAlert,
   ShieldCheck,
   Globe,
-  Activity
+  Target,
+  FileBadge
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, useFirestore } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const navItems = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/' },
+  { label: 'Executive Command', icon: LayoutDashboard, href: '/' },
   { label: 'Asset Inventory', icon: Shield, href: '/assets' },
   { label: 'Scan Engine', icon: Zap, href: '/scans' },
   { label: 'Vulnerabilities', icon: AlertOctagon, href: '/vulnerabilities' },
+  { label: 'Threat Intel', icon: Globe, href: '/threat-intel' },
+  { label: 'Risk Matrix', icon: Target, href: '/risk' },
+  { label: 'Compliance GRC', icon: FileBadge, href: '/compliance' },
   { label: 'AI Security Assistant', icon: Bot, href: '/ai-assistant' },
-  { label: 'Compliance Reports', icon: FileText, href: '/reports' },
+  { label: 'Assessment Reports', icon: FileText, href: '/reports' },
 ];
 
 const secondaryNav = [
@@ -78,7 +80,7 @@ export function Sidebar() {
 
       <nav className="flex-1 px-4 space-y-1 mt-2 overflow-y-auto scrollbar-hide">
         <div className="pb-2 px-4">
-          <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Main Console</p>
+          <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Tactical Center</p>
         </div>
         
         {navItems.map((item) => {
@@ -106,7 +108,7 @@ export function Sidebar() {
         {isAdmin && (
           <>
             <div className="pt-6 pb-2 px-4">
-              <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">System Gov</p>
+              <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Governance</p>
             </div>
             <Link
               href="/admin"
