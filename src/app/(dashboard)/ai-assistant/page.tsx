@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -18,7 +17,10 @@ import {
   History,
   Terminal,
   FileSearch,
-  MessageSquare
+  MessageSquare,
+  LayoutGrid,
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { aiVulnerabilityExplanationAndFix } from '@/ai/flows/ai-vulnerability-explanation-and-fix';
@@ -56,9 +58,12 @@ export default function AIAssistantPage() {
 
   const { data: messages, loading: chatLoading } = useCollection<Message>(chatQuery);
 
-  const filteredMessages = useMemo(() => {
-    if (!historySearch.trim()) return messages;
-    return messages.filter(m => m.content.toLowerCase().includes(historySearch.toLowerCase()));
+  const filteredHistory = useMemo(() => {
+    const userMessages = messages.filter(m => m.role === 'user');
+    if (!historySearch.trim()) return userMessages.reverse();
+    return userMessages.filter(m => 
+      m.content.toLowerCase().includes(historySearch.toLowerCase())
+    ).reverse();
   }, [messages, historySearch]);
 
   // Handle auto-analysis if vulnId is provided
@@ -139,26 +144,32 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
       let responseContent = "";
       const lowerText = textToSend.toLowerCase();
 
-      if (lowerText.includes('hunt') || lowerText.includes('threat')) {
+      if (lowerText.includes('hunt') || lowerText.includes('kql') || lowerText.includes('splunk')) {
         const result = await aiSecurityOpsAssistant({
           query: textToSend,
           type: 'threat_hunt'
         });
-        responseContent = `### Threat Hunting Guidance\n\n${result.analysis}\n\n#### Hunt Query / Action Plan\n${result.actionPlan}`;
-      } else if (lowerText.includes('incident') || lowerText.includes('response')) {
+        responseContent = `### Threat Hunting Guidance\n\n${result.analysis}\n\n#### Hunt Query / Action Plan\n${result.actionPlan}\n\n#### References\n${result.technicalReferences.map(r => `- ${r}`).join('\n')}`;
+      } else if (lowerText.includes('incident') || lowerText.includes('response') || lowerText.includes('nist')) {
         const result = await aiSecurityOpsAssistant({
           query: textToSend,
           type: 'incident_response'
         });
         responseContent = `### Incident Response Plan\n\n${result.analysis}\n\n#### Containment & Eradication Steps\n${result.actionPlan}`;
+      } else if (lowerText.includes('cve') || lowerText.includes('cvss')) {
+        const result = await aiSecurityOpsAssistant({
+          query: textToSend,
+          type: 'cve_analysis'
+        });
+        responseContent = `### Technical CVE Analysis\n\n${result.analysis}\n\n#### Remediation Steps\n${result.actionPlan}`;
       } else {
         const result = await aiVulnerabilityExplanationAndFix({
           vulnerabilityTitle: textToSend,
-          vulnerabilityDescription: "General user query from chat interface.",
+          vulnerabilityDescription: "User requested explanation from chat interface.",
           severity: "Medium",
-          impact: "Consult expert for context."
+          impact: "Pending detailed context analysis."
         });
-        responseContent = result.explanation + "\n\n" + result.suggestedFixes;
+        responseContent = `${result.explanation}\n\n#### Suggested Fixes\n${result.suggestedFixes}\n\n#### Step-by-Step Plan\n${result.remediationPlan}`;
       }
 
       await saveMessage('assistant', responseContent);
@@ -177,7 +188,7 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
   };
 
   return (
-    <div className="max-w-6xl mx-auto h-[calc(100vh-12rem)] flex gap-6">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-12rem)] flex gap-6">
       {/* Sidebar: Chat History & Search */}
       <div className="w-80 flex flex-col gap-4 hidden lg:flex">
         <div className="glass-card p-4 space-y-4 flex-1 overflow-hidden flex flex-col">
@@ -199,19 +210,22 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
               className="h-9 pl-9 text-xs bg-white/5 border-white/10"
             />
           </div>
-          <div className="flex-1 overflow-y-auto space-y-2 scrollbar-hide">
-            {messages.filter(m => m.role === 'user').reverse().map((m) => (
+          <div className="flex-1 overflow-y-auto space-y-2 scrollbar-hide pr-1">
+            {filteredHistory.map((m) => (
               <div 
                 key={m.id} 
                 onClick={() => setInput(m.content)}
                 className="p-3 rounded-xl bg-white/5 border border-transparent hover:border-primary/30 cursor-pointer group transition-all"
               >
-                <p className="text-[11px] text-white truncate group-hover:text-primary">{m.content}</p>
+                <p className="text-[11px] text-white font-medium truncate group-hover:text-primary">{m.content}</p>
                 <p className="text-[9px] text-muted-foreground mt-1">
                   {m.createdAt?.toDate().toLocaleDateString()}
                 </p>
               </div>
             ))}
+            {filteredHistory.length === 0 && !chatLoading && (
+              <div className="py-10 text-center opacity-20 italic text-[10px]">No history found.</div>
+            )}
           </div>
         </div>
       </div>
@@ -222,44 +236,46 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
           <div className="flex flex-col gap-1">
             <h2 className="text-3xl font-headline font-bold text-white flex items-center gap-3">
               <Bot className="w-8 h-8 text-primary" />
-              AI Security Operations
+              Security Ops AI
             </h2>
-            <p className="text-muted-foreground text-sm">Elite cybersecurity assistance for remediation, hunting, and response.</p>
+            <p className="text-muted-foreground text-sm">Elite assistance for threat hunting, incident response, and remediation.</p>
           </div>
         </div>
 
         <div className="flex-1 flex flex-col glass-card rounded-2xl overflow-hidden border-border relative">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-10 scrollbar-hide bg-black/10">
             {messages.length === 0 && !chatLoading && (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-40">
-                <div className="w-20 h-20 rounded-3xl cyber-gradient flex items-center justify-center animate-pulse">
-                  <Bot className="w-10 h-10 text-white" />
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
+                <div className="w-24 h-24 rounded-3xl cyber-gradient flex items-center justify-center shadow-2xl shadow-primary/20 animate-pulse">
+                  <Bot className="w-12 h-12 text-white" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-lg font-bold text-white">System Ready</p>
-                  <p className="text-sm max-w-xs mx-auto">Upload finding telemetry or query the knowledge base for real-time security operations guidance.</p>
+                <div className="space-y-3">
+                  <p className="text-xl font-bold text-white tracking-tight">AI Analyst Initialized</p>
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                    Ready to assist with technical deep dives, SIEM query generation, and NIST-aligned incident response plans.
+                  </p>
                 </div>
               </div>
             )}
             
-            {filteredMessages.map((msg) => (
+            {messages.map((msg) => (
               <div key={msg.id} className={cn(
                 "flex gap-6 max-w-[90%]",
-                msg.role === 'user' ? "ml-auto flex-row-reverse text-right" : "mr-auto"
+                msg.role === 'user' ? "ml-auto flex-row-reverse" : "mr-auto"
               )}>
                 <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xl border",
+                  "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xl border",
                   msg.role === 'assistant' ? "cyber-gradient border-white/20" : "bg-white/10 border-white/5"
                 )}>
-                  {msg.role === 'assistant' ? <Bot className="w-7 h-7 text-white" /> : <User className="w-7 h-7 text-white" />}
+                  {msg.role === 'assistant' ? <Bot className="w-6 h-6 text-white" /> : <User className="w-6 h-6 text-white" />}
                 </div>
                 <div className={cn(
-                  "p-6 rounded-3xl text-sm leading-relaxed border shadow-2xl",
+                  "p-6 rounded-3xl text-sm leading-relaxed border shadow-2xl overflow-x-auto",
                   msg.role === 'assistant' 
-                    ? "bg-white/5 border-white/5 text-white" 
+                    ? "bg-white/5 border-white/5 text-white/90" 
                     : "bg-primary/20 border-primary/20 text-white"
                 )}>
-                  <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 max-w-none prose-sm">
+                  <div className="prose prose-invert prose-p:leading-relaxed prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 max-w-none prose-sm prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1 prose-code:rounded">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {msg.content}
                     </ReactMarkdown>
@@ -270,50 +286,53 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
 
             {isTyping && (
               <div className="flex gap-6 max-w-[90%] mr-auto">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-xl cyber-gradient border border-white/20">
-                  <Bot className="w-7 h-7 text-white" />
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xl cyber-gradient border border-white/20">
+                  <Bot className="w-6 h-6 text-white" />
                 </div>
                 <div className="p-6 rounded-3xl bg-white/5 border border-white/5 flex gap-2 items-center">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce"></span>
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100"></span>
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200"></span>
+                  <div className="flex space-x-1">
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="p-8 bg-white/5 border-t border-white/10 space-y-6">
+          <div className="p-8 bg-black/40 border-t border-white/5 space-y-6">
             <div className="flex gap-4">
               <div className="flex-1 relative">
                 <Input 
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Analyze logs, hunt for threats, or explain a CVE..."
-                  className="bg-black/40 border-white/10 rounded-2xl h-16 pl-6 pr-14 focus:ring-primary/50 text-white text-base"
+                  placeholder="Ask for an IR plan, generate KQL queries, or explain a CVE..."
+                  className="bg-white/5 border-white/10 rounded-2xl h-14 pl-6 pr-14 focus:ring-primary/50 text-white"
                 />
-                <Sparkles className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-primary/50" />
+                <Sparkles className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/30" />
               </div>
               <Button 
                 onClick={() => handleSend()}
-                className="h-16 w-16 rounded-2xl cyber-gradient border-none shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all p-0"
+                className="h-14 w-14 rounded-2xl cyber-gradient border-none shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all p-0"
                 disabled={isTyping || !input.trim()}
               >
-                <Send className="w-6 h-6" />
+                <Send className="w-5 h-5" />
               </Button>
             </div>
             
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {[
-                { label: "Incident Response Plan", icon: Zap, prompt: "Create an Incident Response plan for a Ransomware infection." },
-                { label: "Threat Hunt KQL", icon: FileSearch, prompt: "Generate a KQL query to hunt for Brute Force attempts." },
-                { label: "CVE Analysis", icon: ShieldAlert, prompt: "Explain the root cause and CVSS vector for CVE-2024-3094." },
-                { label: "Secure Coding", icon: Terminal, prompt: "Show me secure coding patterns to prevent SQL injection in Node.js." }
+                { label: "Threat Hunt (KQL)", icon: FileSearch, prompt: "Generate a KQL query to hunt for Lateral Movement via RDP." },
+                { label: "CVE Tech Deep Dive", icon: ShieldAlert, prompt: "Analyze CVE-2024-3094. Explain the backdoor mechanics and CVSS vector." },
+                { label: "Incident Response", icon: Zap, prompt: "Create a containment and eradication plan for a suspected Emotet infection." },
+                { label: "Secure Coding", icon: Terminal, prompt: "Show me secure coding patterns for preventing Prototype Pollution in JavaScript." },
+                { label: "Risk Prioritization", icon: LayoutGrid, prompt: "How should I prioritize a Critical Log4j finding vs a High severity SQLi?" }
               ].map(suggestion => (
                 <button 
                   key={suggestion.label}
                   onClick={() => handleSend(suggestion.prompt)}
-                  className="flex items-center gap-2 whitespace-nowrap px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-muted-foreground hover:bg-white/10 hover:text-white hover:border-primary/50 transition-all"
+                  className="flex items-center gap-2 whitespace-nowrap px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-muted-foreground hover:bg-white/10 hover:text-white hover:border-primary/50 transition-all"
                 >
                   <suggestion.icon className="w-3.5 h-3.5" />
                   {suggestion.label}

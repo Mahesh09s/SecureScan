@@ -1,9 +1,9 @@
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for Security Operations tasks:
- * - Threat Hunting guidance.
- * - Incident Response suggestions.
- * - CVE/CVSS technical deep dives.
+ * - Threat Hunting guidance with SIEM query generation.
+ * - Incident Response suggestions following NIST/SANS frameworks.
+ * - CVE/CVSS technical deep dives with exploitation mechanics.
  *
  * - aiSecurityOpsAssistant - A function that provides specialized security operations guidance.
  */
@@ -41,11 +41,12 @@ User Query: {{{query}}}
 Technical Context: {{{context}}}
 
 Guidelines:
-1. If this is a **Threat Hunt**: Provide specific SIEM/KQL/Splunk queries and MITRE ATT&CK techniques to look for.
-2. If this is **Incident Response**: Follow NIST/SANS frameworks (Identification, Containment, Eradication, Recovery).
-3. If this is **CVE Analysis**: Explain the technical root cause, CVSS vector details, and specific exploitation mechanics.
-4. Always use Markdown formatting, including tables for CVSS scores or step-by-step comparisons.
-5. Provide code blocks for suggested commands or scripts.
+1. If this is a **Threat Hunt**: Provide specific SIEM/KQL/Splunk queries and MITRE ATT&CK techniques. Explain why these queries are effective.
+2. If this is **Incident Response**: Follow NIST SP 800-61 (Preparation, Detection/Analysis, Containment, Eradication, Recovery, Post-Incident). Use markdown tables to prioritize immediate containment actions.
+3. If this is **CVE Analysis**: Explain the technical root cause (e.g., buffer overflow mechanics), breakdown the CVSS v3.1/v4.0 vector details, and describe specific exploitation mechanics.
+4. Always use professional Markdown formatting. 
+5. Provide code blocks for suggested commands (Shell, PowerShell), scripts (Python), or queries (KQL, SQL, YARA).
+6. Use Markdown tables where appropriate to compare current vs. secure states or to detail CVSS vectors.
 
 Ensure the output matches the specified JSON schema.`,
 });
