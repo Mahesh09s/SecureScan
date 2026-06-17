@@ -16,7 +16,7 @@ import {
   Area
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Clock, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Clock, ShieldCheck, Zap, Lock, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestore, useAuth, useCollection } from '@/firebase';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
@@ -49,9 +49,15 @@ export default function Dashboard() {
     return query(collection(firestore, 'scans'), where('ownerId', '==', currentUser.uid));
   }, [firestore, currentUser]);
 
+  const auditQuery = useMemo(() => {
+    if (!firestore || !currentUser) return null;
+    return query(collection(firestore, 'auditLogs'), where('userId', '==', currentUser.uid), orderBy('timestamp', 'desc'), limit(10));
+  }, [firestore, currentUser]);
+
   const { data: vulnerabilities } = useCollection<any>(vulnsQuery);
   const { data: assets } = useCollection<any>(assetsQuery);
   const { data: scans } = useCollection<any>(scansQuery);
+  const { data: recentActivity } = useCollection<any>(auditQuery);
 
   const stats = useMemo(() => {
     const criticals = vulnerabilities?.filter(v => v.severity === 'Critical').length || 0;
@@ -59,7 +65,6 @@ export default function Dashboard() {
     const assetsCount = assets?.length || 0;
     const scansCount = scans?.length || 0;
     
-    // Calculate simple risk score
     const baseScore = 100;
     const reduction = (criticals * 10) + (highs * 5);
     const score = Math.max(0, baseScore - reduction);
@@ -86,7 +91,7 @@ export default function Dashboard() {
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col gap-1">
         <h2 className="text-3xl font-headline font-bold text-white text-glow">Security Overview</h2>
-        <p className="text-muted-foreground">Welcome back, analyst. Here's your surface threat analysis.</p>
+        <p className="text-muted-foreground">Welcome back, {currentUser?.displayName || 'analyst'}. Here's your surface threat analysis.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -129,7 +134,7 @@ export default function Dashboard() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-lg font-headline flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-destructive" />
+              <ShieldAlert className="w-5 h-5 text-destructive" />
               Vulnerability Distribution
             </CardTitle>
           </CardHeader>
@@ -153,30 +158,32 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="glass-card">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-headline">Recent Findings</CardTitle>
-            <Badge variant="outline" className="text-xs font-normal">Live Feed</Badge>
+            <CardTitle className="text-lg font-headline flex items-center gap-2">
+              <History className="w-5 h-5 text-primary" />
+              Security Activity Timeline
+            </CardTitle>
+            <Badge variant="outline" className="text-xs font-normal">Audit Ready</Badge>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {vulnerabilities?.slice(0, 4).map((v) => (
-                <div key={v.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
-                  <div className="flex gap-3">
-                    <div className={cn(
-                      "w-1 h-10 rounded-full",
-                      v.severity === 'Critical' ? "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.5)]" : v.severity === 'High' ? "bg-orange-500" : "bg-yellow-500"
-                    )}></div>
-                    <div>
-                      <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{v.title}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase">{v.assetName} • {v.createdAt?.toDate().toLocaleDateString()}</p>
-                    </div>
+              {recentActivity?.map((log: any) => (
+                <div key={log.id} className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group relative">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                    {log.action.includes('LOGIN') ? <Lock className="w-4 h-4 text-emerald-500" /> : 
+                     log.action.includes('SCAN') ? <Zap className="w-4 h-4 text-primary" /> : 
+                     <ShieldCheck className="w-4 h-4 text-white" />}
                   </div>
-                  <Badge variant={v.severity === 'Critical' ? 'destructive' : 'secondary'} className="text-[9px] uppercase tracking-wider">
-                    {v.severity}
-                  </Badge>
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <p className="text-xs font-bold text-white">{log.action}</p>
+                      <p className="text-[10px] text-muted-foreground">{log.timestamp?.toDate().toLocaleTimeString()}</p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground line-clamp-1">{log.details}</p>
+                  </div>
                 </div>
               ))}
-              {(!vulnerabilities || vulnerabilities.length === 0) && (
-                <div className="text-center py-10 text-muted-foreground text-sm">No findings to display.</div>
+              {(!recentActivity || recentActivity.length === 0) && (
+                <div className="text-center py-10 text-muted-foreground text-sm">No recent activity detected.</div>
               )}
             </div>
           </CardContent>

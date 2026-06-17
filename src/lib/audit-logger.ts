@@ -13,7 +13,11 @@ export type AuditAction =
   | 'VULN_STATUS_CHANGE'
   | 'REPORT_GENERATE'
   | 'ROLE_UPDATE'
-  | 'SETTINGS_CHANGE';
+  | 'SETTINGS_CHANGE'
+  | 'API_KEY_CREATE'
+  | 'API_KEY_REVOKE'
+  | 'MFA_TOGGLE'
+  | 'PASSWORD_CHANGE';
 
 export const logAuditEvent = async (
   userId: string,
@@ -30,7 +34,7 @@ export const logAuditEvent = async (
       details,
       resourceId: resourceId || null,
       timestamp: serverTimestamp(),
-      ipAddress: 'Client-Side' // In a real app, this would be captured on the server
+      ipAddress: 'Client-Side' // In a real app, capture via Cloud Function
     });
   } catch (error) {
     console.error('Failed to log audit event:', error);

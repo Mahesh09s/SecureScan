@@ -9,11 +9,47 @@
         "email": { "type": "string" },
         "displayName": { "type": "string" },
         "role": { "type": "string", "enum": ["admin", "analyst", "viewer"] },
-        "status": { "type": "string", "enum": ["Active", "Suspended"] },
+        "status": { "type": "string", "enum": ["Active", "Suspended", "Locked"] },
+        "mfaEnabled": { "type": "boolean" },
+        "mfaMethod": { "type": "string", "enum": ["TOTP", "Email", "SMS"] },
         "lastLogin": { "type": "string", "format": "date-time" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "loginAttempts": { "type": "number" },
+        "passwordLastChanged": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "role"]
+    },
+    "Session": {
+      "title": "Session",
+      "description": "Active user sessions for management",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "device": { "type": "string" },
+        "browser": { "type": "string" },
+        "os": { "type": "string" },
+        "ipAddress": { "type": "string" },
+        "location": { "type": "string" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "isCurrent": { "type": "boolean" }
+      },
+      "required": ["userId", "device", "ipAddress"]
+    },
+    "ApiKey": {
+      "title": "ApiKey",
+      "description": "Machine-to-machine access keys",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "prefix": { "type": "string" },
+        "lastFour": { "type": "string" },
+        "scopes": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "revoked": { "type": "boolean" }
+      },
+      "required": ["userId", "name", "prefix"]
     },
     "Asset": {
       "title": "Asset",
@@ -105,6 +141,8 @@
   },
   "firestore": {
     "/users/{userId}": { "schema": "UserProfile" },
+    "/users/{userId}/sessions/{sessionId}": { "schema": "Session" },
+    "/users/{userId}/apiKeys/{keyId}": { "schema": "ApiKey" },
     "/assets/{assetId}": { "schema": "Asset" },
     "/scans/{scanId}": { "schema": "Scan" },
     "/vulnerabilities/{vulnId}": { "schema": "Vulnerability" },

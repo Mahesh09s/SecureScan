@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Users, 
   ShieldAlert, 
@@ -18,7 +19,11 @@ import {
   Server,
   AlertTriangle,
   Lock,
-  UserPlus
+  UserPlus,
+  ShieldCheck,
+  Eye,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { 
@@ -84,6 +89,12 @@ export default function AdminPanelPage() {
     ];
   }, [users, allScans]);
 
+  const permissionMatrix = [
+    { role: 'admin', read: true, write: true, delete: true, execute: true },
+    { role: 'analyst', read: true, write: true, delete: false, execute: true },
+    { role: 'viewer', read: true, write: false, delete: false, execute: false },
+  ];
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-20">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -102,7 +113,7 @@ export default function AdminPanelPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {systemStats.map((stat) => (
-          <Card key={stat.label} className="glass-card p-6 border-white/5 relative overflow-hidden group">
+          <Card key={stat.label} className="glass-card p-6 relative overflow-hidden group">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{stat.label}</p>
@@ -118,12 +129,12 @@ export default function AdminPanelPage() {
       </div>
 
       <Tabs defaultValue="users" className="space-y-6">
-        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl h-14">
+        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl h-14 w-full justify-start overflow-x-auto">
           <TabsTrigger value="users" className="rounded-xl px-8 data-[state=active]:bg-primary/20 data-[state=active]:text-primary gap-2">
             <Users className="w-4 h-4" /> Users
           </TabsTrigger>
-          <TabsTrigger value="scans" className="rounded-xl px-8 data-[state=active]:bg-primary/20 data-[state=active]:text-primary gap-2">
-            <Activity className="w-4 h-4" /> Global Scans
+          <TabsTrigger value="matrix" className="rounded-xl px-8 data-[state=active]:bg-primary/20 data-[state=active]:text-primary gap-2">
+            <ShieldCheck className="w-4 h-4" /> RBAC Matrix
           </TabsTrigger>
           <TabsTrigger value="audit" className="rounded-xl px-8 data-[state=active]:bg-primary/20 data-[state=active]:text-primary gap-2">
             <History className="w-4 h-4" /> Audit Logs
@@ -204,6 +215,44 @@ export default function AdminPanelPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="matrix" className="space-y-4">
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Role Permission Matrix</CardTitle>
+              <CardDescription>Define and audit granular access control across platform resources.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableHead>Resource Role</TableHead>
+                    <TableHead className="text-center">Read</TableHead>
+                    <TableHead className="text-center">Write</TableHead>
+                    <TableHead className="text-center">Delete</TableHead>
+                    <TableHead className="text-center">Execute</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {permissionMatrix.map((p) => (
+                    <TableRow key={p.role} className="border-white/5">
+                      <TableCell className="font-bold text-white capitalize">{p.role}</TableCell>
+                      <TableCell className="text-center"><Checkbox checked={p.read} disabled className="mx-auto" /></TableCell>
+                      <TableCell className="text-center"><Checkbox checked={p.write} disabled className="mx-auto" /></TableCell>
+                      <TableCell className="text-center"><Checkbox checked={p.delete} disabled className="mx-auto" /></TableCell>
+                      <TableCell className="text-center"><Checkbox checked={p.execute} disabled className="mx-auto" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="mt-6 flex justify-end">
+                <Button variant="outline" className="border-white/10 gap-2">
+                  <Lock className="w-4 h-4" /> Global Permission Lockdown
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="audit" className="space-y-4">
           <Card className="glass-card">
             <CardHeader>
@@ -246,62 +295,6 @@ export default function AdminPanelPage() {
               </Table>
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-primary" />
-                  Access Control
-                </CardTitle>
-                <CardDescription>Configure global security policies.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-white">Restrict New Registrations</p>
-                    <p className="text-xs text-muted-foreground">Only invited users can join the platform.</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="border-white/10">Enable</Button>
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-white">Enforce 2FA</p>
-                    <p className="text-xs text-muted-foreground">Require two-factor authentication for all users.</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="border-white/10">Disable</Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-emerald-500" />
-                  Notifications
-                </CardTitle>
-                <CardDescription>Global alert configuration.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-white">Slack Integration</p>
-                    <p className="text-xs text-muted-foreground">Send critical alerts to #security-ops.</p>
-                  </div>
-                  <Badge className="bg-primary/20 text-primary border-none">Active</Badge>
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-white">Email Summaries</p>
-                    <p className="text-xs text-muted-foreground">Daily digest of new vulnerabilities.</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="border-white/10">Configure</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
       </Tabs>
     </div>

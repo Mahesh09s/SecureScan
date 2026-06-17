@@ -15,7 +15,8 @@ import {
   Zap,
   LogOut,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth, useFirestore } from '@/firebase';
@@ -33,7 +34,7 @@ const navItems = [
 
 const secondaryNav = [
   { label: 'Profile', icon: User, href: '/profile' },
-  { label: 'Settings', icon: Settings, href: '/settings' },
+  { label: 'Security', icon: ShieldCheck, href: '/settings' },
 ];
 
 export function Sidebar() {
@@ -116,7 +117,7 @@ export function Sidebar() {
         )}
 
         <div className="pt-4 pb-2 px-4">
-          <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">System</p>
+          <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Settings</p>
         </div>
 
         {secondaryNav.map((item) => (
