@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Zap, Play, Square, RefreshCcw, Search, List, Activity, Terminal, Shield } from 'lucide-react';
+import { Zap, Play, Square, Search, List, Activity, Terminal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFirestore, useAuth, useCollection } from '@/firebase';
@@ -29,14 +29,12 @@ export default function ScansPage() {
   const [selectedAssetId, setSelectedAssetId] = useState<string>("");
   const [selectedScanType, setSelectedScanType] = useState<string>("full");
 
-  // Fetch Assets for selection
   const assetsQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
     return query(collection(firestore, 'assets'), where('ownerId', '==', currentUser.uid));
   }, [firestore, currentUser]);
   const { data: assets } = useCollection<any>(assetsQuery);
 
-  // Fetch Recent Scans
   const recentScansQuery = useMemo(() => {
     if (!firestore || !currentUser) return null;
     return query(
@@ -48,7 +46,6 @@ export default function ScansPage() {
   }, [firestore, currentUser]);
   const { data: recentScans } = useCollection<any>(recentScansQuery);
 
-  // Real-time listener for active scan
   useEffect(() => {
     if (!firestore || !activeScanId) return;
     const unsubscribe = onSnapshot(doc(firestore, 'scans', activeScanId), (doc) => {
@@ -85,13 +82,9 @@ export default function ScansPage() {
       });
 
       setActiveScanId(scanRef.id);
-      
-      // Update asset status
       await updateDoc(doc(firestore, 'assets', selectedAssetId), { status: "Scanning" });
 
-      // Run simulation (In production, this would be a background job / cloud function)
       simulateScan(scanRef.id, asset);
-
     } catch (error) {
       console.error(error);
       toast({ variant: "destructive", title: "Scan Error", description: "Failed to launch scan engine." });
@@ -99,7 +92,7 @@ export default function ScansPage() {
   };
 
   const simulateScan = async (scanId: string, asset: any) => {
-    if (!firestore) return;
+    if (!firestore || !currentUser) return;
     
     const scanRef = doc(firestore, 'scans', scanId);
     const steps = [
@@ -111,29 +104,70 @@ export default function ScansPage() {
       { p: 95, log: "Compiling vulnerability report..." },
     ];
 
+    let currentLogs = [`[START] Initiating scan for: ${asset.target}`];
+
     for (const step of steps) {
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 1200));
+      currentLogs.push(`[LOG] ${step.log}`);
       await updateDoc(scanRef, {
         progress: step.p,
-        logs: [...(activeScan?.logs || []), `[LOG] ${step.log}`]
+        logs: currentLogs
       });
     }
 
-    // Finalize
+    // Generate simulated vulnerabilities
+    const findings = [
+      {
+        title: "Missing Content-Security-Policy Header",
+        severity: "Medium",
+        cvss: 4.3,
+        description: "The application does not implement a CSP header, increasing the risk of XSS attacks.",
+        impact: "Allows attackers to execute malicious scripts in the context of the user's browser.",
+        recommendation: "Implement a restrictive CSP header.",
+        evidence: "Header 'Content-Security-Policy' not found in response.",
+        source: "SecureScan Header Engine"
+      },
+      {
+        title: "Outdated Web Server Version (Apache 2.4.41)",
+        severity: "High",
+        cvss: 7.5,
+        cve: "CVE-2021-41773",
+        description: "The detected Apache version is vulnerable to path traversal and file disclosure.",
+        impact: "Remote attackers can read arbitrary files from the server.",
+        recommendation: "Update Apache to version 2.4.51 or higher.",
+        evidence: "Server: Apache/2.4.41 (Ubuntu)",
+        source: "Nmap Fingerprinter"
+      }
+    ];
+
+    for (const vuln of findings) {
+      await addDoc(collection(firestore, 'vulnerabilities'), {
+        ...vuln,
+        assetId: asset.id,
+        assetName: asset.name,
+        scanId: scanId,
+        ownerId: currentUser.uid,
+        createdAt: serverTimestamp(),
+      });
+    }
+
     await updateDoc(scanRef, {
       progress: 100,
       status: "Completed",
+      vulnerabilitiesFound: findings.length,
       completedAt: serverTimestamp(),
-      logs: [...(activeScan?.logs || []), "[COMPLETE] Scan finished. Findings available in Vulnerabilities page."]
+      logs: [...currentLogs, "[COMPLETE] Scan finished. Findings available in Vulnerabilities page."]
     });
     
-    await updateDoc(doc(firestore, 'assets', asset.id), { status: "Healthy" });
+    await updateDoc(doc(firestore, 'assets', asset.id), { 
+      status: findings.length > 0 ? "Vulnerable" : "Healthy" 
+    });
   };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col gap-1">
-        <h2 className="text-3xl font-headline font-bold text-white">Scan Engine</h2>
+        <h2 className="text-3xl font-headline font-bold text-white text-glow">Scan Engine</h2>
         <p className="text-muted-foreground">Launch automated security assessments on your authorized assets.</p>
       </div>
 
@@ -271,9 +305,6 @@ export default function ScansPage() {
                     </div>
                   </div>
                 ))}
-                {(!recentScans || recentScans.length === 0) && (
-                  <div className="p-8 text-center text-xs text-muted-foreground">No recent scans.</div>
-                )}
               </div>
             </CardContent>
           </Card>

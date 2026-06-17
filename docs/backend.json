@@ -45,8 +45,11 @@
         "impact": { "type": "string" },
         "recommendation": { "type": "string" },
         "assetId": { "type": "string" },
+        "assetName": { "type": "string" },
         "scanId": { "type": "string" },
         "cve": { "type": "string" },
+        "cvss": { "type": "number" },
+        "evidence": { "type": "string" },
         "source": { "type": "string" },
         "ownerId": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
