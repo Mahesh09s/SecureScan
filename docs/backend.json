@@ -1,6 +1,20 @@
 
 {
   "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Extended user data and roles",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "analyst", "viewer"] },
+        "status": { "type": "string", "enum": ["Active", "Suspended"] },
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role"]
+    },
     "Asset": {
       "title": "Asset",
       "description": "A security target to be scanned",
@@ -56,27 +70,46 @@
       },
       "required": ["title", "severity", "assetId", "ownerId"]
     },
-    "ChatMessage": {
-      "title": "ChatMessage",
-      "description": "A message in an AI conversation",
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Record of sensitive system actions",
       "type": "object",
       "properties": {
-        "role": { "type": "string", "enum": ["user", "assistant"] },
-        "content": { "type": "string" },
         "userId": { "type": "string" },
-        "vulnContextId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "resource": { "type": "string" },
+        "details": { "type": "string" },
+        "ipAddress": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System alerts for users",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["info", "warning", "error", "success"] },
+        "read": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["role", "content", "userId"]
+      "required": ["userId", "title", "message"]
     }
   },
   "auth": {
     "providers": ["google.com", "password"]
   },
   "firestore": {
+    "/users/{userId}": { "schema": "UserProfile" },
     "/assets/{assetId}": { "schema": "Asset" },
     "/scans/{scanId}": { "schema": "Scan" },
     "/vulnerabilities/{vulnId}": { "schema": "Vulnerability" },
+    "/auditLogs/{logId}": { "schema": "AuditLog" },
+    "/notifications/{notifId}": { "schema": "Notification" },
     "/users/{userId}/chatHistory/{messageId}": { "schema": "ChatMessage" }
   }
 }

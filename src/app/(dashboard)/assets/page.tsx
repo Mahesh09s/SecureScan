@@ -58,7 +58,7 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from "@/select";
+} from "@/components/ui/select";
 import { cn } from '@/lib/utils';
 import { useCollection, useFirestore, useAuth } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, query, where, orderBy } from 'firebase/firestore';
@@ -66,6 +66,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { logAuditEvent } from '@/lib/audit-logger';
 
 const assetSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -73,7 +74,7 @@ const assetSchema = z.object({
   type: z.enum(["Website", "Domain", "Server", "IP"]),
   environment: z.string().default("Production"),
   description: z.string().optional(),
-  tags: z.string().optional(), // We'll handle comma-separated string in UI and array in DB
+  tags: z.string().optional(),
 });
 
 type AssetFormValues = z.infer<typeof assetSchema>;
@@ -112,7 +113,6 @@ export default function AssetsPage() {
   const onSubmit = async (values: AssetFormValues) => {
     if (!firestore || !currentUser) return;
 
-    // Convert tags string to array
     const tagsArray = values.tags 
       ? values.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
       : [];
@@ -126,8 +126,9 @@ export default function AssetsPage() {
           updatedAt: serverTimestamp(),
         });
         toast({ title: "Asset Updated", description: `${values.name} has been updated.` });
+        logAuditEvent(currentUser.uid, currentUser.email!, 'ASSET_UPDATE', `Updated asset ${values.name}`, editingAsset.id);
       } else {
-        await addDoc(collection(firestore, 'assets'), {
+        const docRef = await addDoc(collection(firestore, 'assets'), {
           ...values,
           tags: tagsArray,
           ownerId: currentUser.uid,
@@ -135,6 +136,7 @@ export default function AssetsPage() {
           createdAt: serverTimestamp(),
         });
         toast({ title: "Asset Added", description: `${values.name} is now ready for scanning.` });
+        logAuditEvent(currentUser.uid, currentUser.email!, 'ASSET_CREATE', `Created asset ${values.name}`, docRef.id);
       }
       setIsDialogOpen(false);
       setEditingAsset(null);
@@ -145,11 +147,12 @@ export default function AssetsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!firestore) return;
+  const handleDelete = async (id: string, name: string) => {
+    if (!firestore || !currentUser) return;
     try {
       await deleteDoc(doc(firestore, 'assets', id));
       toast({ title: "Asset Deleted", description: "The asset has been removed from your inventory." });
+      logAuditEvent(currentUser.uid, currentUser.email!, 'ASSET_DELETE', `Deleted asset ${name}`, id);
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Failed to delete asset." });
     }
@@ -393,7 +396,7 @@ export default function AssetsPage() {
                         }} className="gap-2">
                           <Edit2 className="w-4 h-4" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(asset.id)} className="gap-2 text-destructive focus:text-destructive">
+                        <DropdownMenuItem onClick={() => handleDelete(asset.id, asset.name)} className="gap-2 text-destructive focus:text-destructive">
                           <Trash2 className="w-4 h-4" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
