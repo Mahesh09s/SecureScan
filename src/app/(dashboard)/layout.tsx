@@ -1,9 +1,16 @@
+
+"use client";
+
 import { Sidebar } from '@/components/dashboard/Sidebar';
-import { Search, Bell, HelpCircle } from 'lucide-react';
+import { Search, HelpCircle } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { NotificationCenter } from '@/components/dashboard/NotificationCenter';
+import { useAuth } from '@/firebase';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useAuth();
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -19,21 +26,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white rounded-full">
-              <Bell className="w-5 h-5" />
-            </Button>
+            <NotificationCenter />
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white rounded-full">
               <HelpCircle className="w-5 h-5" />
             </Button>
             <div className="h-8 w-[1px] bg-border mx-2"></div>
             <div className="flex items-center gap-3 cursor-pointer group">
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-white group-hover:text-primary transition-colors">Alex Rivera</p>
-                <p className="text-[10px] text-muted-foreground">Security Analyst</p>
+                <p className="text-xs font-bold text-white group-hover:text-primary transition-colors">
+                  {currentUser?.displayName || 'Security Analyst'}
+                </p>
+                <p className="text-[10px] text-muted-foreground capitalize">
+                  {currentUser?.email?.split('@')[0]}
+                </p>
               </div>
               <Avatar className="h-8 w-8 ring-2 ring-border group-hover:ring-primary/50 transition-all">
-                <AvatarImage src="https://picsum.photos/seed/user/100/100" />
-                <AvatarFallback>AR</AvatarFallback>
+                <AvatarImage src={`https://picsum.photos/seed/${currentUser?.uid}/100/100`} />
+                <AvatarFallback>{currentUser?.displayName?.[0] || 'U'}</AvatarFallback>
               </Avatar>
             </div>
           </div>

@@ -5,18 +5,20 @@ import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Zap, Play, Square, Search, List, Activity, Terminal } from 'lucide-react';
+import { Zap, Play, Square, Search, List, Activity, Terminal, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFirestore, useAuth, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { logAuditEvent } from '@/lib/audit-logger';
 
 const scanTypes = [
   { id: 'full', name: 'Comprehensive Scan', description: 'Port scan, nuclei templates, and full vuln search', icon: Zap },
   { id: 'nmap', name: 'Nmap Port Scan', description: 'Port discovery and service fingerprinting', icon: List },
   { id: 'header', name: 'HTTP Header Scanner', description: 'Analyze response headers for security best practices', icon: Search },
   { id: 'ssl', name: 'SSL Checker', description: 'Check certificates and cipher suite vulnerabilities', icon: Activity },
+  { id: 'tech', name: 'WhatWeb Fingerprint', description: 'Identify server technologies and versions', icon: Globe },
 ];
 
 export default function ScansPage() {
@@ -84,6 +86,7 @@ export default function ScansPage() {
       setActiveScanId(scanRef.id);
       await updateDoc(doc(firestore, 'assets', selectedAssetId), { status: "Scanning" });
 
+      logAuditEvent(currentUser.uid, currentUser.email!, 'SCAN_START', `Started ${selectedScanType} scan on ${asset?.name}`, scanRef.id);
       simulateScan(scanRef.id, asset);
     } catch (error) {
       console.error(error);
@@ -99,8 +102,9 @@ export default function ScansPage() {
       { p: 10, log: "Initializing scan engine nodes..." },
       { p: 25, log: `Running Nmap discovery on ${asset.target}...` },
       { p: 40, log: "Analyzing SSL/TLS certificate chains..." },
-      { p: 60, log: "Performing OWASP ZAP baseline web crawling..." },
-      { p: 80, log: "Executing Nuclei high-severity templates..." },
+      { p: 55, log: "Detecting tech stack with WhatWeb fingerprinting..." },
+      { p: 70, log: "Performing OWASP ZAP baseline web crawling..." },
+      { p: 85, log: "Executing Nuclei high-severity templates..." },
       { p: 95, log: "Compiling vulnerability report..." },
     ];
 
@@ -162,6 +166,18 @@ export default function ScansPage() {
     await updateDoc(doc(firestore, 'assets', asset.id), { 
       status: findings.length > 0 ? "Vulnerable" : "Healthy" 
     });
+
+    // Create Notification
+    await addDoc(collection(firestore, 'notifications'), {
+      userId: currentUser.uid,
+      title: "Scan Completed",
+      message: `The ${selectedScanType} scan on ${asset.name} has finished. ${findings.length} issues identified.`,
+      type: "success",
+      read: false,
+      createdAt: serverTimestamp(),
+    });
+
+    logAuditEvent(currentUser.uid, currentUser.email!, 'SCAN_STOP', `Completed scan on ${asset.name}`, scanId);
   };
 
   return (
