@@ -164,8 +164,8 @@ export default function ComplianceDashboard() {
                 <p className="text-[8px] text-muted-foreground uppercase font-bold">Uptime Avg</p>
               </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   User, 
   Shield, 
+  ShieldAlert,
   Clock, 
   Monitor, 
   Smartphone, 

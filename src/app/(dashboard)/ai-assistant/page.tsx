@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +39,7 @@ type Message = {
   createdAt?: any;
 };
 
-export default function AIAssistantPage() {
+function AIAssistantInner() {
   const { currentUser } = useAuth();
   const firestore = useFirestore();
   const searchParams = useSearchParams();
@@ -344,5 +344,17 @@ ${result.bestPractices.map(bp => `- ${bp}`).join('\n')}`;
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AIAssistantPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[calc(100vh-12rem)]">
+        <div className="text-muted-foreground animate-pulse text-sm">Initializing AI Assistant...</div>
+      </div>
+    }>
+      <AIAssistantInner />
+    </Suspense>
   );
 }
