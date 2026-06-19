@@ -11,30 +11,19 @@ import {
   YAxis, 
   Tooltip, 
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  PieChart,
-  Pie
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   ShieldAlert, 
-  Globe, 
   Activity, 
   TrendingUp,
   Flame,
   Zap,
   Clock,
-  CheckCircle2,
-  Lock,
   ShieldCheck,
   ChevronRight,
-  Target,
   AlertTriangle,
-  LayoutGrid,
-  FileText,
   Binary,
   ArrowUpRight
 } from 'lucide-react';
@@ -74,7 +63,6 @@ export default function ExecutiveDashboard() {
 
   const { data: vulnerabilities } = useCollection<any>(vulnsQuery);
   const { data: assets } = useCollection<any>(assetsQuery);
-  const { data: recentScans } = useCollection<any>(scansQuery);
 
   const securityScore = useMemo(() => {
     const criticals = vulnerabilities?.filter(v => v.severity === 'Critical').length || 0;
@@ -140,7 +128,7 @@ export default function ExecutiveDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData}>
                   <defs>
-                    <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorRisk" x1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                     </linearGradient>

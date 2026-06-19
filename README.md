@@ -9,23 +9,23 @@ SecureScan is an elite, full-stack cybersecurity platform designed for high-comp
 
 ---
 
-## 🚀 Key Features
+## 🚀 Strategic Capabilities
 
 ### 📡 Tactical Asset Management
 *   **Authorized Inventory**: Track Websites, Domains, IP Addresses, and Servers with explicit verification.
-*   **Dynamic Categorization**: Tag and group assets by environment (Production, Staging, Dev).
+*   **Dynamic Categorization**: Tag and group assets by environment (Production, Staging, Dev) with real-time health telemetry.
 
 ### 🔍 Multi-Engine Auditing
 *   **Orchestrated Scans**: Parallel execution of industry-standard tools including **Nuclei**, **OWASP ZAP**, and **Vuls**.
-*   **Live Telemetry**: Real-time terminal output during engine execution with automatic finding normalization.
+*   **Live Telemetry**: Real-time terminal output during engine execution with automatic finding normalization and CVSS scoring.
 
 ### 🧠 Gemini AI Security Analyst
 *   **Deep Vulnerability Analysis**: Technical deep-dives into CVEs and CVSS vectors.
-*   **NIST-Aligned Remediation**: Step-by-step IR plans and secure coding recommendations tailored to specific telemetry.
+*   **NIST-Aligned Remediation**: Step-by-step IR plans and secure coding recommendations tailored to specific telemetry evidence.
 
 ### 📊 Strategic Dashboards & Reporting
 *   **Security Health Index**: A-F grading based on real-time risk exposure using weighted CVSS scoring.
-*   **GRC Alignment**: Automatic mapping of findings to OWASP Top 10 and MITRE ATT&CK® within executive-grade PDF reports.
+*   **GRC Alignment**: Automatic mapping of findings to OWASP Top 10 and MITRE ATT&CK® within executive-grade PDF/JSON reports.
 
 ---
 
@@ -39,44 +39,18 @@ SecureScan is an elite, full-stack cybersecurity platform designed for high-comp
 
 ---
 
-## 📖 Documentation
+## 📖 Documentation & Protocol
+Detailed technical documentation and setup procedures are maintained in the `/docs` directory:
+
 - [**Technical Architecture**](./docs/ARCHITECTURE.md) - System design and data flow.
 - [**Internal API Specs**](./docs/API.md) - REST endpoint documentation.
 - [**Deployment Guide**](./docs/DEPLOYMENT.md) - Productionizing on Firebase & Docker.
 - [**Testing & QA Strategy**](./docs/TESTING.md) - Multi-layered testing approach.
-- [**Portfolio & Showcase**](./docs/PORTFOLIO.md) - Content for Resume, LinkedIn, and Portfolios.
-- [**Software Requirements**](./docs/SRS.md) - Detailed functional specs.
+- [**Portfolio & Showcase**](./docs/PORTFOLIO.md) - Content for Resume and Professional Portfolios.
 
 ---
 
-## 🛠 Installation & Setup
-
-### 1. Configure Environment Variables
-Create a `.env.local` file:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY=your_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project
-GEMINI_API_KEY=your_google_ai_key
-```
-
-### 2. Initialize & Run
-```bash
-npm install
-npm run dev
-```
-
----
-
-## 🚢 Deployment
-
-SecureScan is optimized for **Firebase App Hosting**. 
-
-For detailed production instructions, including Docker and SSL configuration, refer to the [**Deployment Guide**](./docs/DEPLOYMENT.md).
-
----
-
-## 📜 License & Ethical Use
+## 📜 Ethical Use & Disclaimer
 SecureScan is intended exclusively for **educational purposes and authorized security assessments**. Users must obtain proper authorization before scanning any systems.
 
 © 2024 SecureScan Technologies Corp. Built for Tactical Defense.
