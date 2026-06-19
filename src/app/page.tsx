@@ -241,8 +241,8 @@ export default function LandingPage() {
               {...fadeInUp}
               className="glass-card p-12 lg:p-16 flex flex-col gap-12 relative group transition-all duration-700 border-primary/40 shadow-[0_40px_100px_rgba(59,130,246,0.1)] ring-1 ring-white/10"
             >
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-black tracking-[0.4em] px-6 py-2 rounded-full uppercase shadow-2xl">
-                Open Source & Research
+              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black tracking-[0.4em] px-6 py-2 rounded-full uppercase shadow-2xl">
+                Open Source
               </div>
 
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
@@ -253,8 +253,8 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-6xl font-headline font-bold text-white">FREE</span>
-                  <span className="text-emerald-500 text-sm font-bold uppercase tracking-widest mt-2">Life-Time Access</span>
+                  <span className="text-6xl font-headline font-bold text-white tracking-tighter">FREE</span>
+                  <span className="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Life-Time Access</span>
                 </div>
               </div>
 
