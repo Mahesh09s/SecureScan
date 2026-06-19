@@ -36,7 +36,8 @@ import {
   Fingerprint,
   LayoutDashboard,
   Bell,
-  History
+  History,
+  UserPlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -132,6 +133,45 @@ export default function LandingPage() {
       desc: 'Responsive dark theme with glassmorphism, live charts, and smooth animations.', 
       color: 'text-pink-500', 
       bg: 'bg-pink-500/10' 
+    },
+  ];
+
+  const workflowSteps = [
+    { 
+      title: 'Register Account', 
+      desc: 'Initialize your operator node and configure your secure profile.', 
+      icon: UserPlus,
+      color: 'text-blue-500'
+    },
+    { 
+      title: 'Add Authorized Assets', 
+      desc: 'Define your perimeter by registering verified websites, servers, and IPs.', 
+      icon: Shield,
+      color: 'text-indigo-500'
+    },
+    { 
+      title: 'Start Security Scan', 
+      desc: 'Orchestrate professional engines like Nuclei and OWASP ZAP with one click.', 
+      icon: Zap,
+      color: 'text-violet-500'
+    },
+    { 
+      title: 'Analyze Vulnerabilities', 
+      desc: 'Review normalized findings categorized by severity and technical impact.', 
+      icon: SearchCode,
+      color: 'text-fuchsia-500'
+    },
+    { 
+      title: 'AI Remediation', 
+      desc: 'Receive NIST-aligned IR plans and secure coding fixes from Gemini.', 
+      icon: Bot,
+      color: 'text-rose-500'
+    },
+    { 
+      title: 'Download Reports', 
+      desc: 'Synthesize audit data into executive-grade PDF and JSON documents.', 
+      icon: FileText,
+      color: 'text-emerald-500'
     },
   ];
 
@@ -298,6 +338,66 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-0 w-full h-0.5 cyber-gradient scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works: Tactical Workflow */}
+      <section id="how-it-works" className="py-48 px-8 relative bg-white/[0.01]">
+        <div className="max-w-7xl mx-auto space-y-32">
+          <div className="text-center max-w-4xl mx-auto space-y-8">
+            <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Audit Pipeline</Badge>
+            <h2 className="text-6xl font-headline font-bold text-white tracking-tighter">How SecureScan Works</h2>
+            <p className="text-2xl text-muted-foreground leading-relaxed font-medium">A streamlined approach to professional vulnerability assessment.</p>
+          </div>
+
+          <div className="relative">
+            {/* Connecting Timeline Line */}
+            <div className="absolute top-24 left-0 w-full h-0.5 bg-white/5 hidden xl:block">
+              <motion.div 
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 2, ease: "easeInOut" }}
+                className="h-full cyber-gradient origin-left"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-8 relative z-10">
+              {workflowSteps.map((step, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.2, duration: 0.5 }}
+                  className="flex flex-col items-center text-center gap-8 group"
+                >
+                  <div className="relative">
+                    <div className={cn(
+                      "w-20 h-20 rounded-2xl glass-card flex items-center justify-center relative z-10 transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]",
+                      step.color
+                    )}>
+                      <step.icon className="w-8 h-8" />
+                    </div>
+                    {/* Pulsing indicator node */}
+                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    </div>
+                  </div>
+
+                  <div className="glass-card p-6 rounded-[2rem] border-white/5 space-y-3 hover:border-primary/30 transition-all">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <span className="text-[10px] font-black text-primary uppercase">Step 0{i + 1}</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-white tracking-tight">{step.title}</h3>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed font-medium line-clamp-3">
+                      {step.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
