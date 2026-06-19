@@ -37,7 +37,9 @@ import {
   LayoutDashboard,
   Bell,
   History,
-  UserPlus
+  UserPlus,
+  XCircle,
+  Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -173,6 +175,18 @@ export default function LandingPage() {
       icon: FileText,
       color: 'text-emerald-500'
     },
+  ];
+
+  const comparisonData = [
+    { feature: "AI-Powered Analysis", ss: true, trad: false },
+    { feature: "Real-Time Telemetry Dashboard", ss: true, trad: false },
+    { feature: "Granular RBAC Controls", ss: true, trad: false },
+    { feature: "Automated Risk Scoring", ss: true, trad: false },
+    { feature: "Modern Glassmorphism UI", ss: true, trad: false },
+    { feature: "Automated Compliance GRC", ss: true, trad: false },
+    { feature: "Centralized Asset Perimeter", ss: true, trad: false },
+    { feature: "Live Security Notifications", ss: true, trad: false },
+    { feature: "Executive PDF/JSON Reports", ss: true, trad: false },
   ];
 
   return (
@@ -398,6 +412,58 @@ export default function LandingPage() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose SecureScan: Comparison Section */}
+      <section id="comparison" className="py-48 px-8 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto space-y-24">
+          <div className="text-center max-w-4xl mx-auto space-y-8">
+            <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Competitive Intelligence</Badge>
+            <h2 className="text-6xl font-headline font-bold text-white tracking-tight">Why Choose SecureScan</h2>
+            <p className="text-2xl text-muted-foreground leading-relaxed font-medium">A paradigm shift in automated vulnerability detection and remediation.</p>
+          </div>
+
+          <div className="grid lg:grid-cols-1 gap-8">
+            <motion.div 
+              {...fadeInUp}
+              className="glass-card rounded-[3rem] overflow-hidden border-white/5 bg-black/20"
+            >
+              <div className="grid grid-cols-3 bg-white/[0.02] border-b border-white/5">
+                <div className="p-8 text-xs font-black text-muted-foreground uppercase tracking-widest border-r border-white/5">Platform Feature</div>
+                <div className="p-8 flex items-center gap-3 border-r border-white/5">
+                  <div className="w-8 h-8 rounded-lg cyber-gradient flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-black text-white uppercase tracking-widest">SecureScan</span>
+                </div>
+                <div className="p-8 flex items-center gap-3 opacity-40">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                    <History className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-black text-white uppercase tracking-widest">Legacy Tools</span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-white/5">
+                {comparisonData.map((row, idx) => (
+                  <div key={idx} className="grid grid-cols-3 group hover:bg-white/[0.01] transition-colors">
+                    <div className="p-8 text-sm font-bold text-white/80 border-r border-white/5 flex items-center">{row.feature}</div>
+                    <div className="p-8 flex items-center border-r border-white/5">
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div className="p-8 flex items-center">
+                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/10">
+                        <XCircle className="w-5 h-5" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
