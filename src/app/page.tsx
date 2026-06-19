@@ -219,7 +219,7 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-6">
             {currentUser ? (
-              <Button asChild className="cyber-gradient rounded-xl px-8 font-bold h-11 text-white shadow-xl shadow-primary/20 hover:scale-105 transition-all">
+              <Button asChild className="cyber-gradient rounded-xl px-8 font-bold h-11 text-white shadow-xl shadow-primary/20 hover:scale-105 transition-all border-none">
                 <Link href="/dashboard">Command Center <ChevronRight className="ml-2 w-4 h-4" /></Link>
               </Button>
             ) : (
@@ -321,7 +321,7 @@ export default function LandingPage() {
       </section>
 
       {/* Enterprise Security Features */}
-      <section id="features" className="py-48 px-8 relative overflow-hidden">
+      <section id="intelligence" className="py-48 px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-24">
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Platform Capabilities</Badge>
@@ -337,7 +337,6 @@ export default function LandingPage() {
                 whileHover={{ y: -10, scale: 1.02 }}
                 className="glass-card p-8 border-white/5 flex flex-col items-start gap-8 group cursor-pointer transition-all duration-500 hover:border-primary/40 relative overflow-hidden"
               >
-                {/* Decorative background glow */}
                 <div className={cn("absolute -top-10 -right-10 w-24 h-24 blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity rounded-full", feat.bg)}></div>
                 
                 <div className={cn("p-4 rounded-2xl transition-all duration-500 group-hover:scale-110 shadow-lg", feat.bg, feat.color)}>
@@ -348,7 +347,6 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground leading-relaxed font-medium opacity-80">{feat.desc}</p>
                 </div>
                 
-                {/* Bottom gradient indicator */}
                 <div className="absolute bottom-0 left-0 w-full h-0.5 cyber-gradient scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
               </motion.div>
             ))}
@@ -357,7 +355,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works: Tactical Workflow */}
-      <section id="how-it-works" className="py-48 px-8 relative bg-white/[0.01]">
+      <section id="architecture" className="py-48 px-8 relative bg-white/[0.01]">
         <div className="max-w-7xl mx-auto space-y-32">
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Audit Pipeline</Badge>
@@ -366,7 +364,6 @@ export default function LandingPage() {
           </div>
 
           <div className="relative">
-            {/* Connecting Timeline Line */}
             <div className="absolute top-24 left-0 w-full h-0.5 bg-white/5 hidden xl:block">
               <motion.div 
                 initial={{ scaleX: 0 }}
@@ -394,7 +391,6 @@ export default function LandingPage() {
                     )}>
                       <step.icon className="w-8 h-8" />
                     </div>
-                    {/* Pulsing indicator node */}
                     <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     </div>
@@ -417,7 +413,7 @@ export default function LandingPage() {
       </section>
 
       {/* Why Choose SecureScan: Comparison Section */}
-      <section id="comparison" className="py-48 px-8 relative overflow-hidden">
+      <section id="compliance" className="py-48 px-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-24">
           <div className="text-center max-w-4xl mx-auto space-y-8">
             <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Competitive Intelligence</Badge>
@@ -543,9 +539,9 @@ export default function LandingPage() {
           <Accordion type="single" collapsible className="space-y-6">
             {[
               { q: "Is vulnerability scanning fully authorized?", a: "SecureScan is built on the principle of authorized testing. Users must prove ownership or explicit permission for any target. Every scan is cryptographically signed and logged in an immutable audit trail." },
-              { q: "How does the AI remediation logic work?", a: "Our system utilizes Gemini 1.5 Pro to synthesize technical scan findings into human-readable code fixes. It analyzes the specific telemetry of your assets to ensure remediation plans are contextually accurate." },
+              { q: "How does the AI remediation logic work?", a: "Our system utilizes Gemini 2.5 Flash to synthesize technical scan findings into human-readable code fixes. It analyzes the specific telemetry of your assets to ensure remediation plans are contextually accurate." },
               { q: "Is the platform really free?", a: "Yes. The Community Edition is designed as a contribution to the cybersecurity community, supporting students and researchers in learning defensive security operations." },
-              { q: "What frameworks are supported for GRC?", a: "We provide automated mapping to OWASP Top 10 (2021), MITRE ATT&CK, NIST CSF 2.0, and PCI DSS 4.0 within our reports." },
+              { q: "What frameworks are supported for GRC?", a: "We provide automated mapping to OWASP Top 10 (2021), MITRE ATT&CK®, NIST CSF 2.0, and PCI DSS 4.0 within our reports." },
             ].map((item, i) => (
               <AccordionItem key={i} value={`item-${i}`} className="glass-card px-10 border-white/5 rounded-[2rem] overflow-hidden">
                 <AccordionTrigger className="text-white hover:no-underline font-bold text-xl py-8 text-left group">

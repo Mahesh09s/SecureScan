@@ -17,15 +17,15 @@ SecureScan is an elite, full-stack cybersecurity platform designed for high-comp
 
 ### 🔍 Multi-Engine Auditing
 *   **Orchestrated Scans**: Parallel execution of industry-standard tools including **Nuclei**, **OWASP ZAP**, and **Vuls**.
-*   **Live Telemetry**: Real-time terminal output during engine execution.
+*   **Live Telemetry**: Real-time terminal output during engine execution with automatic finding normalization.
 
 ### 🧠 Gemini AI Security Analyst
 *   **Deep Vulnerability Analysis**: Technical deep-dives into CVEs and CVSS vectors.
-*   **NIST-Aligned Remediation**: Step-by-step IR plans and secure coding recommendations.
+*   **NIST-Aligned Remediation**: Step-by-step IR plans and secure coding recommendations tailored to specific telemetry.
 
 ### 📊 Strategic Dashboards & Reporting
-*   **Security Health Index**: A-F grading based on real-time risk exposure.
-*   **GRC Alignment**: Automatic mapping of findings to OWASP Top 10 and MITRE ATT&CK.
+*   **Security Health Index**: A-F grading based on real-time risk exposure using weighted CVSS scoring.
+*   **GRC Alignment**: Automatic mapping of findings to OWASP Top 10 and MITRE ATT&CK® within executive-grade PDF reports.
 
 ---
 
@@ -35,6 +35,7 @@ SecureScan is an elite, full-stack cybersecurity platform designed for high-comp
 *   **Backend**: Firebase (Firestore, Authentication).
 *   **AI Engine**: Google Genkit + Gemini 2.5 Flash.
 *   **Reporting**: jsPDF & jsPDF-AutoTable.
+*   **Motion**: Framer Motion for tactical UI transitions.
 
 ---
 
@@ -75,5 +76,7 @@ For detailed production instructions, including Docker and SSL configuration, re
 
 ---
 
-## 📜 License
-© 2024 SecureScan Technologies Corp. Built for Defensive Security. Proprietary license for authorized organizational use.
+## 📜 License & Ethical Use
+SecureScan is intended exclusively for **educational purposes and authorized security assessments**. Users must obtain proper authorization before scanning any systems.
+
+© 2024 SecureScan Technologies Corp. Built for Tactical Defense.
