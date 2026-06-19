@@ -33,7 +33,10 @@ import {
   SearchCode,
   FileSearch,
   ShieldQuestion,
-  Fingerprint
+  Fingerprint,
+  LayoutDashboard,
+  Bell,
+  History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -58,6 +61,79 @@ export default function LandingPage() {
     viewport: { once: true },
     transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
   };
+
+  const enterpriseFeatures = [
+    { 
+      title: 'Asset Management', 
+      icon: HardDrive, 
+      desc: 'Manage websites, domains, servers, and IP addresses from a centralized dashboard.', 
+      color: 'text-blue-500', 
+      bg: 'bg-blue-500/10' 
+    },
+    { 
+      title: 'Vulnerability Scanning', 
+      icon: SearchCode, 
+      desc: 'Perform authorized security assessments and identify security weaknesses.', 
+      color: 'text-emerald-500', 
+      bg: 'bg-emerald-500/10' 
+    },
+    { 
+      title: 'AI Security Assistant', 
+      icon: Bot, 
+      desc: 'Get AI-powered explanations, remediation guidance, and risk prioritization.', 
+      color: 'text-violet-500', 
+      bg: 'bg-violet-500/10' 
+    },
+    { 
+      title: 'Security Dashboard', 
+      icon: LayoutDashboard, 
+      desc: 'Monitor assets, vulnerabilities, compliance, and overall security posture.', 
+      color: 'text-primary', 
+      bg: 'bg-primary/10' 
+    },
+    { 
+      title: 'Security Reports', 
+      icon: FileBadge, 
+      desc: 'Generate professional PDF, CSV, and JSON reports tailored for stakeholders.', 
+      color: 'text-cyan-500', 
+      bg: 'bg-cyan-500/10' 
+    },
+    { 
+      title: 'Compliance Monitoring', 
+      icon: Target, 
+      desc: 'Visualize OWASP Top 10, MITRE ATT&CK, and security best practices.', 
+      color: 'text-orange-500', 
+      bg: 'bg-orange-500/10' 
+    },
+    { 
+      title: 'Notifications', 
+      icon: Bell, 
+      desc: 'Receive real-time alerts for scans, vulnerabilities, and security events.', 
+      color: 'text-red-500', 
+      bg: 'bg-red-500/10' 
+    },
+    { 
+      title: 'Audit Logs', 
+      icon: History, 
+      desc: 'Track all user actions and system events for total accountability.', 
+      color: 'text-amber-500', 
+      bg: 'bg-amber-500/10' 
+    },
+    { 
+      title: 'Role-Based Access', 
+      icon: Fingerprint, 
+      desc: 'Secure authentication with Admin, Security Analyst, and Viewer roles.', 
+      color: 'text-indigo-500', 
+      bg: 'bg-indigo-500/10' 
+    },
+    { 
+      title: 'Modern UI', 
+      icon: MousePointer2, 
+      desc: 'Responsive dark theme with glassmorphism, live charts, and smooth animations.', 
+      color: 'text-pink-500', 
+      bg: 'bg-pink-500/10' 
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-[#030712] overflow-x-hidden selection:bg-primary selection:text-white">
@@ -190,37 +266,36 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Feature Architecture */}
-      <section id="architecture" className="py-48 px-8 relative">
-        <div className="max-w-7xl mx-auto space-y-32">
+      {/* Enterprise Security Features */}
+      <section id="features" className="py-48 px-8 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto space-y-24">
           <div className="text-center max-w-4xl mx-auto space-y-8">
-            <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">The Architecture of Defense</Badge>
-            <h2 className="text-6xl font-headline font-bold text-white tracking-tighter">Built for High-Compliance Engineering.</h2>
-            <p className="text-2xl text-muted-foreground leading-relaxed font-medium">SecureScan orchestrates professional security tools into a unified, actionable telemetry stream.</p>
+            <Badge variant="outline" className="border-primary/30 text-primary uppercase tracking-[0.4em] font-bold text-[10px] px-6 py-2 rounded-full">Platform Capabilities</Badge>
+            <h2 className="text-6xl font-headline font-bold text-white tracking-tighter">Enterprise Security Features</h2>
+            <p className="text-2xl text-muted-foreground leading-relaxed font-medium">Everything required for modern vulnerability assessment and security management in one platform.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {[
-              { title: 'Asset Discovery', icon: SearchCode, desc: 'Continuous, recursive mapping of your authorized digital surface across web and cloud.', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-              { title: 'Multi-Engine Audit', icon: Activity, desc: 'Parallel execution of Nuclei, OWASP ZAP, and Vuls for exhaustive technical assessment.', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-              { title: 'AI Remediation', icon: Bot, desc: 'Gemini-integrated logic providing code-level fixes and NIST-aligned IR plans for every finding.', color: 'text-violet-500', bg: 'bg-violet-500/10' },
-              { title: 'GRC Mapping', icon: ShieldCheck, desc: 'Automated correlation of technical findings to OWASP Top 10, MITRE ATT&CK, and NIST CSF.', color: 'text-primary', bg: 'bg-primary/10' },
-              { title: 'Identity Governance', icon: Fingerprint, desc: 'Enterprise-grade RBAC and session monitoring to ensure authorized access only.', color: 'text-orange-500', bg: 'bg-orange-500/10' },
-              { title: 'Audit Pipeline', icon: Database, desc: 'Immutable logging of all system actions for regulatory compliance and accountability.', color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
-            ].map((feat, i) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {enterpriseFeatures.map((feat, i) => (
               <motion.div 
                 key={i}
                 {...fadeInUp}
-                whileHover={{ y: -15, scale: 1.03 }}
-                className="glass-card p-12 border-white/5 flex flex-col items-start gap-10 group cursor-pointer transition-all duration-700 hover:border-primary/40 hover:shadow-[0_20px_50px_rgba(59,130,246,0.1)]"
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="glass-card p-8 border-white/5 flex flex-col items-start gap-8 group cursor-pointer transition-all duration-500 hover:border-primary/40 relative overflow-hidden"
               >
-                <div className={cn("p-5 rounded-3xl transition-all duration-500 group-hover:scale-110", feat.bg, feat.color)}>
-                  <feat.icon className="w-10 h-10" />
+                {/* Decorative background glow */}
+                <div className={cn("absolute -top-10 -right-10 w-24 h-24 blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity rounded-full", feat.bg)}></div>
+                
+                <div className={cn("p-4 rounded-2xl transition-all duration-500 group-hover:scale-110 shadow-lg", feat.bg, feat.color)}>
+                  <feat.icon className="w-8 h-8" />
                 </div>
-                <div className="space-y-4">
-                  <h3 className="text-3xl font-bold text-white tracking-tight">{feat.title}</h3>
-                  <p className="text-lg text-muted-foreground leading-relaxed font-medium opacity-80">{feat.desc}</p>
+                <div className="space-y-3 relative z-10">
+                  <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-primary transition-colors">{feat.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-medium opacity-80">{feat.desc}</p>
                 </div>
+                
+                {/* Bottom gradient indicator */}
+                <div className="absolute bottom-0 left-0 w-full h-0.5 cyber-gradient scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
               </motion.div>
             ))}
           </div>
