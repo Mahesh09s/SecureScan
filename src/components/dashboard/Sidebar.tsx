@@ -26,7 +26,7 @@ import { useAuth } from '@/firebase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
-  { label: 'Command Center', icon: LayoutDashboard, href: '/' },
+  { label: 'Command Center', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Asset Perimeter', icon: Shield, href: '/assets' },
   { label: 'Scan Engines', icon: Zap, href: '/scans' },
   { label: 'Vulnerability Hub', icon: AlertOctagon, href: '/vulnerabilities' },

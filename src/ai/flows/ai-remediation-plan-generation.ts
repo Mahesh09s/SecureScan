@@ -53,9 +53,9 @@ Initial Recommendation: {{{recommendation}}}
 {{/if}}{{#if cvssScore}}CVSS Score: {{{cvssScore}}}
 {{/if}}{{#if evidence}}Evidence:
 
-```
+\`\`\`
 {{{evidence}}}
-```
+\`\`\`
 {{/if}}{{#if references}}References:
 {{#each references}}- {{{this}}}
 {{/each}}
@@ -69,14 +69,14 @@ Please generate the following:
 
 Ensure the output is strictly in JSON format matching the following schema, including newlines and proper indentation for readability:
 
-```json
+\`\`\`json
 {
   "summary": "...",
   "remediationPlan": "...",
   "bestPractices": "...",
   "codeExamples": "..."
 }
-```
+\`\`\`
 `,
 });
 
