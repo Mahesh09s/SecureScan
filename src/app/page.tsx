@@ -71,70 +71,80 @@ export default function LandingPage() {
       icon: HardDrive, 
       desc: 'Manage websites, domains, servers, and IP addresses from a centralized dashboard.', 
       color: 'text-blue-500', 
-      bg: 'bg-blue-500/10' 
+      bg: 'bg-blue-500/10',
+      href: '/assets'
     },
     { 
       title: 'Vulnerability Scanning', 
       icon: SearchCode, 
       desc: 'Perform authorized security assessments and identify security weaknesses.', 
       color: 'text-emerald-500', 
-      bg: 'bg-emerald-500/10' 
+      bg: 'bg-emerald-500/10',
+      href: '/scans'
     },
     { 
       title: 'AI Security Assistant', 
       icon: Bot, 
       desc: 'Get AI-powered explanations, remediation guidance, and risk prioritization.', 
       color: 'text-violet-500', 
-      bg: 'bg-violet-500/10' 
+      bg: 'bg-violet-500/10',
+      href: '/ai-assistant'
     },
     { 
       title: 'Security Dashboard', 
       icon: LayoutDashboard, 
       desc: 'Monitor assets, vulnerabilities, compliance, and overall security posture.', 
       color: 'text-primary', 
-      bg: 'bg-primary/10' 
+      bg: 'bg-primary/10',
+      href: '/dashboard'
     },
     { 
       title: 'Security Reports', 
       icon: FileBadge, 
       desc: 'Generate professional PDF, CSV, and JSON reports tailored for stakeholders.', 
       color: 'text-cyan-500', 
-      bg: 'bg-cyan-500/10' 
+      bg: 'bg-cyan-500/10',
+      href: '/reports'
     },
     { 
       title: 'Compliance Monitoring', 
       icon: Target, 
       desc: 'Visualize OWASP Top 10, MITRE ATT&CK, and security best practices.', 
       color: 'text-orange-500', 
-      bg: 'bg-orange-500/10' 
+      bg: 'bg-orange-500/10',
+      href: '/compliance'
     },
     { 
       title: 'Notifications', 
       icon: Bell, 
       desc: 'Receive real-time alerts for scans, vulnerabilities, and security events.', 
       color: 'text-red-500', 
-      bg: 'bg-red-500/10' 
+      bg: 'bg-red-500/10',
+      href: '/dashboard'
     },
     { 
       title: 'Audit Logs', 
       icon: History, 
       desc: 'Track all user actions and system events for total accountability.', 
       color: 'text-amber-500', 
-      bg: 'bg-amber-500/10' 
+      bg: 'bg-amber-500/10',
+      href: '/dashboard'
     },
     { 
       title: 'Role-Based Access', 
       icon: Fingerprint, 
       desc: 'Secure authentication with Admin, Security Analyst, and Viewer roles.', 
       color: 'text-indigo-500', 
-      bg: 'bg-indigo-500/10' 
+      bg: 'bg-indigo-500/10',
+      href: '/login'
     },
     { 
       title: 'Modern UI', 
       icon: MousePointer2, 
       desc: 'Responsive dark theme with glassmorphism, live charts, and smooth animations.', 
       color: 'text-pink-500', 
-      bg: 'bg-pink-500/10' 
+      bg: 'bg-pink-500/10',
+      href: '/dashboard'
     },
   ];
 
@@ -143,37 +153,43 @@ export default function LandingPage() {
       title: 'Register Account', 
       desc: 'Initialize your operator node and configure your secure profile.', 
       icon: UserPlus,
-      color: 'text-blue-500'
+      color: 'text-blue-500',
+      href: '/register'
     },
     { 
       title: 'Add Authorized Assets', 
       desc: 'Define your perimeter by registering verified websites, servers, and IPs.', 
       icon: Shield,
-      color: 'text-indigo-500'
+      color: 'text-indigo-500',
+      href: '/assets'
     },
     { 
       title: 'Start Security Scan', 
       desc: 'Orchestrate professional engines like Nuclei and OWASP ZAP with one click.', 
       icon: Zap,
-      color: 'text-violet-500'
+      color: 'text-violet-500',
+      href: '/scans'
     },
     { 
       title: 'Analyze Vulnerabilities', 
       desc: 'Review normalized findings categorized by severity and technical impact.', 
       icon: SearchCode,
-      color: 'text-fuchsia-500'
+      color: 'text-fuchsia-500',
+      href: '/vulnerabilities'
     },
     { 
       title: 'AI Remediation', 
       desc: 'Receive NIST-aligned IR plans and secure coding fixes from Gemini.', 
       icon: Bot,
-      color: 'text-rose-500'
+      color: 'text-rose-500',
+      href: '/ai-assistant'
     },
     { 
       title: 'Download Reports', 
       desc: 'Synthesize audit data into executive-grade PDF and JSON documents.', 
       icon: FileText,
-      color: 'text-emerald-500'
+      color: 'text-emerald-500',
+      href: '/reports'
     },
   ];
 
@@ -331,24 +347,29 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {enterpriseFeatures.map((feat, i) => (
-              <motion.div 
-                key={i}
-                {...fadeInUp}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="glass-card p-8 border-white/5 flex flex-col items-start gap-8 group cursor-pointer transition-all duration-500 hover:border-primary/40 relative overflow-hidden"
+              <Link 
+                key={i} 
+                href={feat.href}
+                className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-[2rem] outline-none block h-full"
               >
-                <div className={cn("absolute -top-10 -right-10 w-24 h-24 blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity rounded-full", feat.bg)}></div>
-                
-                <div className={cn("p-4 rounded-2xl transition-all duration-500 group-hover:scale-110 shadow-lg", feat.bg, feat.color)}>
-                  <feat.icon className="w-8 h-8" />
-                </div>
-                <div className="space-y-3 relative z-10">
-                  <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-primary transition-colors">{feat.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed font-medium opacity-80">{feat.desc}</p>
-                </div>
-                
-                <div className="absolute bottom-0 left-0 w-full h-0.5 cyber-gradient scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-              </motion.div>
+                <motion.div 
+                  {...fadeInUp}
+                  whileHover={{ y: -10 }}
+                  className="glass-card p-8 border-white/5 flex flex-col items-start gap-8 cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:border-cyan-400 hover:shadow-2xl relative overflow-hidden h-full"
+                >
+                  <div className={cn("absolute -top-10 -right-10 w-24 h-24 blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity rounded-full", feat.bg)}></div>
+                  
+                  <div className={cn("p-4 rounded-2xl transition-all duration-300 group-hover:scale-110 shadow-lg", feat.bg, feat.color)}>
+                    <feat.icon className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-3 relative z-10 text-left">
+                    <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-cyan-400 transition-colors">{feat.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed font-medium opacity-80">{feat.desc}</p>
+                  </div>
+                  
+                  <div className="absolute bottom-0 left-0 w-full h-0.5 cyber-gradient scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
@@ -376,36 +397,41 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-8 relative z-10">
               {workflowSteps.map((step, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.2, duration: 0.5 }}
-                  className="flex flex-col items-center text-center gap-8 group"
+                <Link 
+                  key={i} 
+                  href={step.href}
+                  className="group flex flex-col items-center text-center outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-[2rem] p-2 block"
                 >
-                  <div className="relative">
-                    <div className={cn(
-                      "w-20 h-20 rounded-2xl glass-card flex items-center justify-center relative z-10 transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]",
-                      step.color
-                    )}>
-                      <step.icon className="w-8 h-8" />
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.2, duration: 0.5 }}
+                    className="flex flex-col items-center text-center gap-8 cursor-pointer transition-all duration-300 hover:scale-[1.02] relative"
+                  >
+                    <div className="relative">
+                      <div className={cn(
+                        "w-20 h-20 rounded-2xl glass-card flex items-center justify-center relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(34,211,238,0.2)]",
+                        step.color
+                      )}>
+                        <step.icon className="w-8 h-8" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                      </div>
                     </div>
-                    <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                    </div>
-                  </div>
 
-                  <div className="glass-card p-6 rounded-[2rem] border-white/5 space-y-3 hover:border-primary/30 transition-all">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <span className="text-[10px] font-black text-primary uppercase">Step 0{i + 1}</span>
+                    <div className="glass-card p-6 rounded-[2rem] border-white/5 space-y-3 transition-all duration-300 hover:border-cyan-400 hover:shadow-2xl">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                        <span className="text-[10px] font-black text-cyan-400 uppercase">Step 0{i + 1}</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-cyan-400 transition-colors">{step.title}</h3>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed font-medium line-clamp-3">
+                        {step.desc}
+                      </p>
                     </div>
-                    <h3 className="text-sm font-bold text-white tracking-tight">{step.title}</h3>
-                    <p className="text-[11px] text-muted-foreground leading-relaxed font-medium line-clamp-3">
-                      {step.desc}
-                    </p>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </Link>
               ))}
             </div>
           </div>
