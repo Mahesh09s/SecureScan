@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/firebase';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Shield, Mail, Lock, ChevronRight, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
   const { currentUser, auth } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -33,6 +35,26 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please verify credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your operator email address first to reset your password.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Reset Link Transmitted",
+        description: "A secure password reset link has been dispatched to your email.",
+      });
+    } catch (err: any) {
+      setError(err.message || 'Failed to trigger password reset.');
     } finally {
       setLoading(false);
     }
@@ -120,6 +142,16 @@ export default function LoginPage() {
                     className="bg-white/5 border-white/10 rounded-xl h-12 pl-12 text-white placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-sm"
                   />
                 </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-[10px] font-black text-primary/80 hover:text-primary uppercase tracking-widest hover:underline"
+                >
+                  Forgot Password?
+                </button>
               </div>
 
               <Button
